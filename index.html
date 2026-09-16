@@ -255,13 +255,6 @@ label.setting-row:last-child{border-bottom:none;}
 .override-meta{font-size:11px; color:var(--text-light); margin-top:2px;}
 .override-actions{display:flex; gap:6px; flex-shrink:0;}
 .empty-hint{color:var(--text-light); font-size:11.5px; text-align:center; padding:10px; line-height:1.5;}
-.appicon-card{display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap;}
-.appicon-preview-wrap{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:8px;}
-.appicon-preview{width:72px; height:72px; border-radius:16px; border:var(--hairline); object-fit:cover; background:var(--bg); display:block;}
-.appicon-controls{flex:1 1 220px; min-width:0; display:flex; flex-direction:column; gap:10px;}
-.appicon-gen-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
-.color-input{width:44px; height:40px; padding:2px; border:var(--hairline); border-radius:8px; background:var(--card-bg); cursor:pointer; flex-shrink:0;}
-.emoji-input{flex:1 1 90px; min-width:70px; text-align:center; font-size:20px; margin-top:0;}
 .modal-overlay{position:fixed; inset:0; background:rgba(17,17,20,.45); display:flex; align-items:center; justify-content:center; z-index:30; padding:16px;}
 .modal-overlay.hidden{display:none;}
 .modal-card{
@@ -526,7 +519,6 @@ label.setting-row:last-child{border-bottom:none;}
 const K_SETTINGS = 'ltt2_settings';
 const K_RECORDS = 'ltt2_records';
 const K_OVERRIDES = 'ltt2_overrides';
-const K_APPICON = 'ltt2_appicon';
 
 function defaultSettings(){
   return {
@@ -551,7 +543,6 @@ function saveOverrides(){ localStorage.setItem(K_OVERRIDES, JSON.stringify(overr
 let settings = Object.assign(defaultSettings(), loadJSON(K_SETTINGS, {}));
 let records = loadJSON(K_RECORDS, {});
 let overrides = loadJSON(K_OVERRIDES, {});
-let appIconData = loadJSON(K_APPICON, null);
 let manifestBlobUrl = null;
 
 /* ================= Company Name ================= */
@@ -560,7 +551,7 @@ function renderCompanyDisplay(){
   el.textContent = settings.companyName && settings.companyName.trim() ? settings.companyName.trim() : 'Company Name';
 }
 
-/* ================= App Icon ================= */
+/* ================= App Icon (fixed default: white "W" on #00FFD1) ================= */
 function roundedRectPath(ctx,x,y,w,h,r){
   ctx.beginPath();
   ctx.moveTo(x+r,y);
@@ -570,45 +561,26 @@ function roundedRectPath(ctx,x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
   ctx.closePath();
 }
-function drawGeneratedIcon(bg, emoji, textColor){
+function drawGeneratedIcon(bg, text, textColor){
   const size = 512;
   const canvas = document.createElement('canvas');
   canvas.width = size; canvas.height = size;
   const ctx = canvas.getContext('2d');
   roundedRectPath(ctx,0,0,size,size, size*0.18);
-  ctx.fillStyle = bg || '#0B5FFF';
+  ctx.fillStyle = bg;
   ctx.fill();
-  ctx.fillStyle = textColor || '#ffffff';
-  ctx.font = `${Math.round(size*0.5)}px -apple-system, "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+  ctx.fillStyle = textColor;
+  ctx.font = `500 ${Math.round(size*0.5)}px -apple-system, "Segoe UI", sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText((emoji || '⏱').slice(0,2), size/2, size*0.56);
+  ctx.fillText(text, size/2, size/2);
   return canvas.toDataURL('image/png');
-}
-function defaultIconLetter(){
-  const name = (settings.companyName || 'WorksLog').trim();
-  return name ? name[0].toUpperCase() : 'W';
 }
 function generateDefaultIconDataURL(){
-  return drawGeneratedIcon('#0B5FFF', defaultIconLetter(), '#ffffff');
-}
-function resizeImageToIcon(img){
-  const size = 512;
-  const canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  const scale = Math.max(size/img.width, size/img.height);
-  const w = img.width*scale, h = img.height*scale;
-  const x = (size-w)/2, y = (size-h)/2;
-  roundedRectPath(ctx,0,0,size,size, size*0.18);
-  ctx.save();
-  ctx.clip();
-  ctx.drawImage(img, x, y, w, h);
-  ctx.restore();
-  return canvas.toDataURL('image/png');
+  return drawGeneratedIcon('#00FFD1', 'W', '#ffffff');
 }
 function getCurrentIconDataUrl(){
-  return (appIconData && appIconData.dataUrl) ? appIconData.dataUrl : generateDefaultIconDataURL();
+  return generateDefaultIconDataURL();
 }
 function applyAppIcon(){
   const dataUrl = getCurrentIconDataUrl();
@@ -638,12 +610,6 @@ function applyAppIcon(){
   manifestBlobUrl = URL.createObjectURL(blob);
   const manifestLink = document.getElementById('manifest-link');
   if(manifestLink) manifestLink.setAttribute('href', manifestBlobUrl);
-}
-function saveAppIcon(obj){
-  appIconData = obj;
-  if(obj) localStorage.setItem(K_APPICON, JSON.stringify(obj));
-  else localStorage.removeItem(K_APPICON);
-  applyAppIcon();
 }
 
 /* ================= Helpers ================= */
@@ -1572,11 +1538,6 @@ function renderSettings(){
     </div>`;
   }).join('') || '<div class="empty-hint">No date overrides added</div>';
 
-  const iconPreviewSrc = getCurrentIconDataUrl();
-  const genBg = (appIconData && appIconData.bg) ? appIconData.bg : '#0B5FFF';
-  const genEmoji = (appIconData && appIconData.emoji) ? appIconData.emoji : defaultIconLetter();
-  const genTextColor = (appIconData && appIconData.textColor) ? appIconData.textColor : '#ffffff';
-
   document.getElementById('tab-settings').innerHTML = `
     <div class="card" id="standard-times-card">
       <h3>Standard Times</h3>
@@ -1616,25 +1577,6 @@ function renderSettings(){
     <div class="card">
       <h3>Company</h3>
       <label class="setting-row" for="set-companyname"><span class="setting-title">Company Name</span><input type="text" id="set-companyname" value="${escapeHtml(settings.companyName || '')}" placeholder="Company Name" maxlength="60"></label>
-
-      <h3 style="margin-top:18px;">App Icon (Home Screen)</h3>
-      <div class="appicon-card">
-        <div class="appicon-preview-wrap">
-          <img id="appicon-preview-img" class="appicon-preview" src="${iconPreviewSrc}" alt="App icon preview">
-          <button class="btn small danger" id="appicon-reset-btn">Reset</button>
-        </div>
-        <div class="appicon-controls">
-          <label class="btn ghost full" for="appicon-upload-input">Upload Photo</label>
-          <input type="file" id="appicon-upload-input" accept="image/*" style="display:none;">
-          <div class="appicon-gen-row">
-            <input type="color" id="appicon-bg-color" class="color-input" value="${genBg}" title="Background color">
-            <input type="text" id="appicon-emoji-input" class="emoji-input" maxlength="2" value="${escapeHtml(genEmoji)}" placeholder="⏱ or W">
-            <input type="color" id="appicon-text-color" class="color-input" value="${genTextColor}" title="Emoji/text color">
-          </div>
-          <button class="btn primary full" id="appicon-generate-btn">Generate &amp; Apply Icon</button>
-        </div>
-      </div>
-      <div class="empty-hint">To use this icon: iPhone (Safari) — tap Share → Add to Home Screen. Android (Chrome) — tap ⋮ → Add to Home Screen / Install app. If you already added a shortcut, remove it and re-add after changing the icon.</div>
     </div>
 
     <div class="card">
@@ -1654,36 +1596,6 @@ function renderSettings(){
     saveSettings();
     renderCompanyDisplay();
     applyAppIcon();
-  });
-
-  document.getElementById('appicon-reset-btn').addEventListener('click', ()=>{
-    saveAppIcon(null);
-    renderSettings();
-  });
-  document.getElementById('appicon-upload-input').addEventListener('change', e=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = evt=>{
-      const img = new Image();
-      img.onload = ()=>{
-        const dataUrl = resizeImageToIcon(img);
-        saveAppIcon({ dataUrl, source:'upload' });
-        renderSettings();
-      };
-      img.onerror = ()=> alert('Could not load that image.');
-      img.src = evt.target.result;
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  });
-  document.getElementById('appicon-generate-btn').addEventListener('click', ()=>{
-    const bg = document.getElementById('appicon-bg-color').value;
-    const emoji = document.getElementById('appicon-emoji-input').value.trim() || defaultIconLetter();
-    const textColor = document.getElementById('appicon-text-color').value;
-    const dataUrl = drawGeneratedIcon(bg, emoji, textColor);
-    saveAppIcon({ dataUrl, source:'generated', bg, emoji, textColor });
-    renderSettings();
   });
 
   document.getElementById('set-arrive').addEventListener('change', e=>{ settings.arriveTime = e.target.value || settings.arriveTime; saveSettings(); refreshAll(); });
@@ -1866,7 +1778,7 @@ document.getElementById('dm-save').addEventListener('click', ()=>{
 
 /* ================= JSON Export / Import / Reset ================= */
 function exportData(){
-  const data = { settings, records, overrides, appIcon: appIconData };
+  const data = { settings, records, overrides };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1887,11 +1799,6 @@ function importData(e){
       if(data.settings) settings = Object.assign(defaultSettings(), data.settings);
       if(data.records) records = data.records;
       if(data.overrides) overrides = data.overrides;
-      if(data.appIcon !== undefined){
-        appIconData = data.appIcon;
-        if(appIconData) localStorage.setItem(K_APPICON, JSON.stringify(appIconData));
-        else localStorage.removeItem(K_APPICON);
-      }
       saveSettings(); saveRecords(); saveOverrides();
       renderCompanyDisplay();
       applyAppIcon();
