@@ -1,0 +1,2187 @@
+<!DOCTYPE html><html lang="en-GB"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>WorksLog</title>
+<link rel="icon" id="favicon-link" href="">
+<link rel="apple-touch-icon" id="apple-touch-icon-link" href="">
+<link rel="manifest" id="manifest-link" href="">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WorksLog" id="apple-title-meta">
+<meta name="theme-color" content="#0B5FFF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#0B5FFF; --blue-dark:#0847CC; --blue-bg:#ffffff;
+  --green:#12805C; --red:#D92D20; --orange:#B54708; --purple:#6941C6; --grey:#6E6E73;
+  --bg:#F5F5F7; --card-bg:#FFFFFF;
+  --text:#111114; --text-light:#6E6E73;
+  --border:#E7E7EA; --border-strong:#D8D8DC;
+  --hairline:1px solid var(--border);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0B0C0E; --card-bg:#15161A;
+    --text:#F2F2F3; --text-light:#9A9AA1;
+    --border:#26272C; --border-strong:#33343A;
+    --blue-bg:#15161A;
+  }
+}
+*{box-sizing:border-box;}
+html{height:100%;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg); color:var(--text); -webkit-tap-highlight-color:transparent;
+  -webkit-font-smoothing:antialiased;
+  height:100%; margin:0; padding:0; display:flex; flex-direction:column; overflow:hidden;
+}
+.topbar{background:var(--card-bg); padding:18px 20px 0; border-bottom:var(--hairline); flex:0 0 auto;}
+.topbar h1{margin:0; font-size:24px; font-weight:800; letter-spacing:-0.02em; color:var(--text);}
+.eyebrow-display{
+  font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.14em;
+  color:var(--text-light); margin:0 0 3px; line-height:1.4;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.tabbar{display:flex; gap:2px; margin-top:16px; max-width:600px; margin-left:auto; margin-right:auto;}
+.tabbar .navbtn{
+  flex:1; background:none; border:none; padding:10px 4px 12px; display:flex; align-items:center; justify-content:center;
+  gap:6px; font-size:12px; font-weight:700; letter-spacing:.02em; color:var(--text-light); cursor:pointer;
+  position:relative; border-radius:0; font-family:inherit; min-height:44px; box-sizing:border-box;
+  text-transform:uppercase;
+}
+.tabbar .navbtn .dot{
+  display:block; width:5px; height:5px; border-radius:50%; background:transparent; flex-shrink:0;
+  transition:background .15s;
+}
+.tabbar .navbtn.active{color:var(--text);}
+.tabbar .navbtn.active .dot{background:var(--blue);}
+.tabbar .navbtn::after{content:none;}
+main{
+  padding:0; max-width:600px; margin:0 auto; position:relative; width:100%;
+  flex:1 1 auto; min-height:0; display:flex; flex-direction:column;
+}
+.tabs-viewport{overflow:hidden; width:100%; flex:1 1 auto; min-height:0;}
+.tabs-track{
+  display:flex; width:400%; height:100%;
+  transition:transform .34s cubic-bezier(.22,.61,.36,1);
+  will-change:transform;
+}
+.tabs-track.dragging{transition:none;}
+.tab-panel{
+  flex:0 0 25%; width:25%; height:100%; min-width:0; box-sizing:border-box;
+  padding:16px 16px 32px; touch-action:pan-y;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+}
+.card{background:var(--card-bg); border:var(--hairline); border-radius:14px; padding:18px 18px 16px; margin-bottom:14px;}
+.card h3{margin:0 0 14px; font-size:13.5px; font-weight:800; letter-spacing:.02em; color:var(--text); text-transform:uppercase;}
+.card label{display:block; margin-bottom:12px; font-size:11px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:.08em;}
+.section-divider{border-top:var(--hairline); margin:18px 0 16px;}
+input[type=time],input[type=month],input[type=number],input[type=date],input[type=text],select{
+  display:block; width:100%; max-width:100%; min-width:0; margin-top:6px; padding:8px 12px; border:var(--hairline); border-radius:9px;
+  font-size:14px; font-weight:500; color:var(--text); background:var(--card-bg); font-family:inherit;
+  text-transform:none; letter-spacing:normal; min-height:40px; box-sizing:border-box;
+  -webkit-appearance:none; appearance:none; transition:border-color .15s;
+}
+input:focus,select:focus{ outline:none; border-color:var(--blue); }
+@media (max-width: 480px){
+  input[type=time],input[type=month],input[type=date],input[type=number],input[type=text],select{
+    font-size:16px;
+  }
+}
+.btn{
+  font-family:inherit; border:1px solid transparent; border-radius:9px; padding:10px 16px; font-size:12.5px; font-weight:700;
+  letter-spacing:.02em; text-transform:uppercase; cursor:pointer; transition:background .15s,border-color .15s,color .15s;
+  min-height:40px; display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+}
+.btn.small{padding:8px 14px; font-size:11px; border-radius:8px; min-height:40px;}
+.btn.primary{background:var(--blue); color:#fff; border-color:var(--blue);}
+.btn.primary:hover{background:var(--blue-dark); border-color:var(--blue-dark);}
+.btn.ghost{background:var(--card-bg); color:var(--text); border:1px solid var(--border-strong);}
+.btn.ghost:hover{border-color:var(--blue); color:var(--blue);}
+.btn.danger{background:var(--card-bg); color:var(--red); border:1px solid var(--red);}
+.btn.danger:hover{background:var(--red); color:#fff;}
+.btn.full{display:flex; width:100%; margin-bottom:8px; text-align:center;}
+label.btn.ghost.full{
+  cursor:pointer;
+  display:flex; width:100%; margin-bottom:8px; text-align:center;
+  font-size:12.5px; font-weight:700; letter-spacing:.02em; text-transform:uppercase;
+  color:var(--text); background:var(--card-bg); border:1px solid var(--border-strong);
+}
+label.btn.ghost.full:hover{border-color:var(--blue); color:var(--blue);}
+.today-date{font-size:11px; font-weight:700; color:var(--text-light); margin-bottom:16px; text-align:center; text-transform:uppercase; letter-spacing:.12em;}
+.holiday-banner{background:var(--card-bg); border:var(--hairline); color:var(--text); font-weight:700; padding:20px; border-radius:12px; font-size:15px; text-align:center;}
+.earliest-block{text-align:center; margin-bottom:8px;}
+.status-label{font-size:10.5px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:.14em; margin-bottom:6px;}
+.status-main{font-size:32px; font-weight:800; letter-spacing:-0.02em; color:var(--text); line-height:1.15;}
+.status-main.pending{color:var(--text-light);}
+.status-main-small{font-size:17px; font-weight:700; color:var(--text-light); letter-spacing:-0.01em;}
+.status-sub{font-size:12.5px; font-weight:600; color:var(--text-light); margin-top:10px;}
+.tags{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:14px;}
+.tag{
+  display:inline-block; padding:4px 11px; border-radius:20px; font-size:10.5px; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; border:none;
+}
+.tag-red{ color:var(--red); background:rgba(217,45,32,0.10); }
+.tag-orange{ color:var(--orange); background:rgba(181,71,8,0.10); }
+.tag-purple{ color:var(--purple); background:rgba(105,65,198,0.10); }
+.tag-blue{ color:var(--blue); background:rgba(11,95,255,0.10); }
+.tag-green{ color:var(--green); background:rgba(18,128,92,0.10); }
+.tag-grey{ color:var(--text-light); background:rgba(110,110,115,0.10); }
+.tag-holiday{ color:var(--blue); background:rgba(11,95,255,0.08); }
+.field-row{display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:var(--hairline);}
+.field-row:last-child{border-bottom:none;}
+.field-label{flex:1.2; font-size:13.5px; font-weight:700; color:var(--text);}
+.field-value{flex:1; font-size:13px; color:var(--text-light); font-variant-numeric:tabular-nums;}
+.dashboard-card{padding:18px 18px 16px;}
+.dash-header{display:flex; justify-content:space-between; align-items:center;}
+.dash-month{font-size:14.5px; font-weight:800; color:var(--text); letter-spacing:.01em; text-transform:uppercase;}
+.dash-cal-wrap{position:relative; width:36px; height:36px; flex-shrink:0;}
+.dash-cal-btn{
+  width:36px; height:36px; border-radius:9px; border:var(--hairline); background:var(--card-bg);
+  display:flex; align-items:center; justify-content:center; font-size:15px; cursor:pointer; pointer-events:none;
+}
+.dash-month-input{
+  position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; padding:0;
+  min-height:0; cursor:pointer; border:none;
+}
+.search-filter-row{display:flex; gap:8px; margin-bottom:12px;}
+.search-filter-row input{flex:1; margin-top:0; min-width:0;}
+.filters-btn{position:relative; flex:0 0 auto; white-space:nowrap;}
+.filters-badge{
+  position:absolute; top:-6px; right:-6px; background:var(--blue); color:#fff;
+  font-size:9.5px; font-weight:800; border-radius:10px; min-width:17px; height:17px;
+  display:flex; align-items:center; justify-content:center; padding:0 4px; line-height:1;
+}
+.quick-chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+.quick-chips::-webkit-scrollbar{display:none;}
+.filter-chip{
+  flex:0 0 auto; border:1px solid var(--border-strong); background:var(--card-bg); color:var(--text-light);
+  padding:7px 13px; border-radius:20px; font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+  cursor:pointer; white-space:nowrap; font-family:inherit; transition:background .15s,color .15s,border-color .15s;
+}
+.filter-chip.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+.filter-count{font-size:11px; color:var(--text-light); font-weight:700; margin:2px 4px 12px; text-transform:uppercase; letter-spacing:.05em;}
+.custom-range-row{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;}
+.custom-range-row .field{flex:1 1 120px; display:flex; flex-direction:column; gap:4px; min-width:0;}
+.custom-range-row label{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-light);}
+.custom-range-row input{margin-top:0;}
+.day-list{display:flex; flex-direction:column; gap:10px;}
+.day-card{background:var(--card-bg); border:var(--hairline); border-radius:12px; padding:14px; cursor:pointer; transition:border-color .15s;}
+.day-card:hover{border-color:var(--blue);}
+.day-card.today{border-color:var(--blue);}
+.day-card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px;}
+.day-card-date{font-size:12px; font-weight:800; color:var(--text); flex-shrink:0; text-transform:uppercase; letter-spacing:.03em;}
+.day-card-badges{display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;}
+.day-card-times{display:flex; flex-wrap:wrap; gap:8px; font-size:11.5px; color:var(--text-light); font-variant-numeric:tabular-nums;}
+.day-card-remark{margin-top:8px; font-size:11.5px; color:var(--purple); font-weight:600;}
+.period-tabs{display:flex; gap:6px; background:var(--bg); padding:4px; border-radius:10px; margin-bottom:14px; border:var(--hairline);}
+.period-tab-btn{flex:1; border:none; background:none; padding:9px 4px; border-radius:8px; font-size:11.5px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:var(--text-light); cursor:pointer; font-family:inherit; transition:background .15s,color .15s; min-height:38px;}
+.period-tab-btn.active{background:var(--card-bg); color:var(--blue); border:var(--hairline);}
+.period-nav{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.period-nav-btn{width:36px; height:36px; border-radius:9px; border:var(--hairline); background:var(--card-bg); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; color:var(--text); cursor:pointer; flex-shrink:0; padding:0; font-family:inherit; line-height:1; transition:border-color .15s,color .15s;}
+.period-nav-btn:hover{border-color:var(--blue); color:var(--blue);}
+.period-nav-label{font-size:14px; font-weight:800; color:var(--text); text-align:center; flex:1; letter-spacing:-0.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.section-heading{font-size:11px; font-weight:800; color:var(--text-light); letter-spacing:.1em; text-transform:uppercase; margin:22px 4px 10px;}
+.section-heading:first-of-type{margin-top:4px;}
+.report-card h3{display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;}
+.report-card h3 .report-period-label{color:var(--text-light); font-weight:600; font-size:11.5px; text-transform:none; letter-spacing:normal;}
+.sub-heading{
+  font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:var(--text-light);
+  margin:20px 0 10px; border-top:var(--hairline); padding-top:16px;
+}
+.sub-heading:first-of-type{margin-top:0; border-top:none; padding-top:0;}
+.sub-heading.no-line{border-top:none; padding-top:0;}
+.insight-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:4px;}
+.insight-card{border:none; border-radius:12px; padding:14px; min-width:0; background:var(--card-bg);}
+.insight-card.good{ background:rgba(18,128,92,0.08); }
+.insight-card.bad{ background:rgba(217,45,32,0.08); }
+.insight-card-label{display:flex; align-items:center; gap:5px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;}
+.insight-card.good .insight-card-label{color:var(--green);}
+.insight-card.bad .insight-card-label{color:var(--red);}
+.insight-card-date{font-size:14px; font-weight:800; color:var(--text); letter-spacing:-0.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.insight-card-detail{font-size:11.5px; color:var(--text-light); font-weight:600; margin-top:4px; line-height:1.4;}
+.stat-grid{display:grid; grid-template-columns:1fr 1fr;}
+.stat-card{background:none; border:none; border-radius:0; padding:6px 10px; text-align:center;}
+.stat-card:first-child{border-right:var(--hairline);}
+.stat-num{font-size:24px; font-weight:800; color:var(--text); letter-spacing:-0.02em; line-height:1;}
+.stat-label{font-size:11px; color:var(--text-light); font-weight:700; margin-top:6px; text-transform:uppercase; letter-spacing:.06em;}
+.issue-list{margin-bottom:2px;}
+.issue-row{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-bottom:var(--hairline);}
+.issue-list .issue-row:last-child{border-bottom:none;}
+.issue-row-main{flex:1; min-width:0;}
+.issue-row-label{font-size:13px; font-weight:700; color:var(--text);}
+.issue-row-detail{font-size:11.5px; color:var(--text-light); font-weight:600; margin-top:2px;}
+.issue-badge{flex-shrink:0; padding:4px 11px; border-radius:20px; font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; border:none;}
+.issue-badge.warn{ color:var(--orange); background:rgba(181,71,8,0.10); }
+.issue-badge.ok{ color:var(--green); background:rgba(18,128,92,0.10); }
+.delay-list{margin-bottom:2px;}
+.delay-row{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; font-weight:600; color:var(--text); padding:9px 0; border-bottom:var(--hairline);}
+.delay-list .delay-row:last-child{border-bottom:none;}
+.delay-row strong{font-weight:800;}
+label.setting-row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-bottom:0; padding:11px 0; border-bottom:var(--hairline);
+  text-transform:none; letter-spacing:normal; font-size:13px; font-weight:600; color:var(--text-light);
+}
+label.setting-row:last-child{border-bottom:none;}
+.setting-row .setting-title{
+  flex:1; min-width:0; line-height:1.3;
+  font-size:13px; font-weight:700; color:var(--text);
+  text-transform:none; letter-spacing:normal;
+}
+#standard-times-card .setting-title{ font-weight:500; }
+.setting-row input,
+.setting-row select{
+  flex:0 0 160px; max-width:160px; margin-top:0; min-width:0; text-align:left;
+}
+.setting-row input[type=time],
+.setting-row input[type=number]{
+  text-align:center;
+}
+@media (max-width:360px){
+  .setting-row input,
+  .setting-row select{ flex:0 0 130px; max-width:130px; }
+}
+.weekday-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+.weekday-check{display:flex; align-items:center; gap:6px; font-size:11.5px; background:var(--card-bg); border:var(--hairline); padding:9px 6px; border-radius:9px; justify-content:center; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:.03em; min-height:40px; box-sizing:border-box;}
+.weekday-check input{margin:0; accent-color:var(--blue);}
+.holiday-add{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;}
+.holiday-add input{flex:1 1 140px; min-width:0; margin-top:0;}
+.holiday-add .btn{flex:0 0 auto;}
+.override-list{display:flex; flex-direction:column; gap:8px;}
+.override-item{display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); border:var(--hairline); padding:12px; border-radius:10px; gap:8px; flex-wrap:wrap;}
+.override-date{font-size:12.5px; font-weight:800; color:var(--text); text-transform:uppercase; letter-spacing:.02em;}
+.override-meta{font-size:11px; color:var(--text-light); margin-top:2px;}
+.override-actions{display:flex; gap:6px; flex-shrink:0;}
+.empty-hint{color:var(--text-light); font-size:11.5px; text-align:center; padding:10px; line-height:1.5;}
+.appicon-card{display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap;}
+.appicon-preview-wrap{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:8px;}
+.appicon-preview{width:72px; height:72px; border-radius:16px; border:var(--hairline); object-fit:cover; background:var(--bg); display:block;}
+.appicon-controls{flex:1 1 220px; min-width:0; display:flex; flex-direction:column; gap:10px;}
+.appicon-gen-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+.color-input{width:44px; height:40px; padding:2px; border:var(--hairline); border-radius:8px; background:var(--card-bg); cursor:pointer; flex-shrink:0;}
+.emoji-input{flex:1 1 90px; min-width:70px; text-align:center; font-size:20px; margin-top:0;}
+.modal-overlay{position:fixed; inset:0; background:rgba(17,17,20,.45); display:flex; align-items:center; justify-content:center; z-index:30; padding:16px;}
+.modal-overlay.hidden{display:none;}
+.modal-card{
+  background:var(--card-bg); border:var(--hairline); border-radius:16px;
+  width:100%; max-width:400px; max-height:88vh;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.modal-header{position:relative; flex-shrink:0; padding:18px 54px 14px 22px; border-bottom:var(--hairline);}
+.modal-header h3{margin:0; font-size:15px; font-weight:800; letter-spacing:.02em; color:var(--text); text-transform:uppercase;}
+.modal-close-btn{
+  position:absolute; top:12px; right:12px; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--border-strong); background:var(--card-bg); color:var(--text); font-size:14px; font-weight:800;
+  line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
+  transition:border-color .15s,color .15s; flex-shrink:0;
+}
+.modal-close-btn:hover{border-color:var(--red); color:var(--red);}
+.modal-body{overflow-y:auto; padding:16px 22px 22px;}
+.modal-section-title{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-light);
+  margin:20px 0 12px;
+}
+.modal-section-title:first-of-type{margin-top:0;}
+#dayModal .setting-row .setting-title{ font-weight:500; }
+.override-row{display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+.override-row label{
+  flex:1 1 160px; margin-bottom:0; min-width:0;
+  font-size:13px; font-weight:500; color:var(--text); text-transform:none; letter-spacing:normal;
+}
+.override-row .clear-btn{flex-shrink:0; white-space:nowrap;}
+.ov-hint{display:block; font-size:10.5px; color:var(--text-light); margin-top:4px; font-weight:500; text-transform:none; letter-spacing:normal;}
+.modal-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;}
+.modal-actions .btn{flex:1; min-width:80px;}
+.checkbox-row,.radio-row{
+  display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:var(--hairline);
+  font-size:13.5px; font-weight:600; color:var(--text); cursor:pointer;
+  text-transform:none; letter-spacing:normal;
+}
+.filters-list{margin-bottom:6px;}
+.filters-list .checkbox-row:last-child,
+.filters-list .radio-row:last-child{border-bottom:none;}
+.checkbox-row input,.radio-row input{width:17px; height:17px; accent-color:var(--blue); margin:0; flex-shrink:0;}
+#fm-delay-options{
+  display:none; padding-left:26px; border-bottom:var(--hairline);
+}
+#fm-delay-options.open{display:block;}
+#fm-delay-options .radio-row{border-bottom:none; padding:9px 0; font-size:13px; color:var(--text-light);}
+#fm-delay-options .radio-row:first-child{padding-top:2px;}
+#fm-delay-options .radio-row:last-child{padding-bottom:12px;}
+.nudge-btn{flex:0 0 60px; min-width:60px; font-size:13px;}
+.time-input-row{display:flex; gap:8px; align-items:center;}
+.time-input-row input[type=time]{flex:1; margin-top:0; min-width:0;}
+.time-input-row .nudge-btn{margin-top:0;}
+.back-to-top-btn{
+  position:fixed; right:18px; bottom:calc(18px + env(safe-area-inset-bottom));
+  width:46px; height:46px; border-radius:50%; border:none; background:var(--blue); color:#fff;
+  font-size:19px; font-weight:800; font-family:inherit;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  box-shadow:0 4px 14px rgba(11,95,255,0.35); z-index:20;
+  opacity:0; transform:translateY(8px); pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease;
+}
+.back-to-top-btn.visible{ opacity:1; transform:translateY(0); pointer-events:auto; }
+.back-to-top-btn:hover{ background:var(--blue-dark); }
+.field-row .field-label{ word-break:break-word; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="eyebrow-display" id="company-name-display">Company Name</div>
+  <h1>WorksLog</h1>
+  <nav class="tabbar">
+    <button data-tab="today" class="navbtn active"><span class="dot"></span><span>Today</span></button>
+    <button data-tab="records" class="navbtn"><span class="dot"></span><span>Records</span></button>
+    <button data-tab="reports" class="navbtn"><span class="dot"></span><span>Reports</span></button>
+    <button data-tab="settings" class="navbtn"><span class="dot"></span><span>Settings</span></button>
+  </nav>
+</header>
+
+<main>
+  <div class="tabs-viewport">
+    <div class="tabs-track" id="tabs-track">
+      <section id="tab-today" class="tab-panel"></section>
+      <section id="tab-records" class="tab-panel"></section>
+      <section id="tab-reports" class="tab-panel"></section>
+      <section id="tab-settings" class="tab-panel"></section>
+    </div>
+  </div>
+</main>
+
+<button type="button" id="back-to-top-btn" class="back-to-top-btn" aria-label="Back to top">↑</button>
+
+<!-- Quick Time Modal (Today tab) -->
+<div id="timeModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="tm-title">Edit Time</h3>
+      <button type="button" class="modal-close-btn" id="tm-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>Time
+        <div class="time-input-row">
+          <input type="time" id="tm-input" lang="en-GB">
+          <button type="button" class="btn ghost nudge-btn" id="tm-minus1">−1m</button>
+          <button type="button" class="btn ghost nudge-btn" id="tm-plus1">+1m</button>
+        </div>
+      </label>
+      <div class="modal-actions">
+        <button class="btn danger" id="tm-clear">Clear</button>
+        <button class="btn primary" id="tm-save">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Time Slot Modal (Today tab / Day Detail modal) -->
+<div id="customSlotModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="cs-title">Add Time Slot</h3>
+      <button type="button" class="modal-close-btn" id="cs-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>Label
+        <input type="text" id="cs-label" placeholder="e.g. Client Call" maxlength="30">
+      </label>
+      <label>Time
+        <div class="time-input-row">
+          <input type="time" id="cs-input" lang="en-GB">
+          <button type="button" class="btn ghost nudge-btn" id="cs-minus1">−1m</button>
+          <button type="button" class="btn ghost nudge-btn" id="cs-plus1">+1m</button>
+        </div>
+      </label>
+      <div class="modal-actions">
+        <button class="btn danger" id="cs-delete" style="display:none;">Delete</button>
+        <button class="btn primary" id="cs-save">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Day Detail Modal (Records tab / Today tab / Settings overrides) -->
+<div id="dayModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="dm-title">Edit Day</h3>
+      <button type="button" class="modal-close-btn" id="dm-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-section-title">Attendance Times</div>
+      <label class="setting-row" for="dm-arrive"><span class="setting-title">Arrive Office</span><input type="time" id="dm-arrive" lang="en-GB"></label>
+      <label class="setting-row" for="dm-lunchStart"><span class="setting-title">Lunch Start</span><input type="time" id="dm-lunchStart" lang="en-GB"></label>
+      <label class="setting-row" for="dm-lunchEnd"><span class="setting-title">Lunch End</span><input type="time" id="dm-lunchEnd" lang="en-GB"></label>
+      <label class="setting-row" for="dm-realLeave"><span class="setting-title">Real Leave</span><input type="time" id="dm-realLeave" lang="en-GB"></label>
+
+      <div class="modal-section-title">Custom Time Slots</div>
+      <div id="dm-customslots-list"></div>
+      <button type="button" class="btn ghost full" id="dm-add-customslot" style="margin-bottom:8px;">+ Add Custom Time Slot</button>
+
+      <div class="modal-section-title">Day Type / Label</div>
+      <label class="setting-row" for="dm-daytype">
+        <span class="setting-title">Day Type</span>
+        <select id="dm-daytype">
+          <option value="">Normal</option>
+          <option value="holiday">Holiday</option>
+          <option value="paidHoliday">Paid Holiday</option>
+          <option value="specialWorking">Special Working Day</option>
+        </select>
+      </label>
+      <label class="setting-row" for="dm-label"><span class="setting-title">Custom Label</span><input type="text" id="dm-label" placeholder="e.g. AL"></label>
+      <label class="setting-row" for="dm-remark"><span class="setting-title">Remark</span><input type="text" id="dm-remark" placeholder="e.g. Mid-Autumn Festival"></label>
+
+      <div class="modal-section-title">Override Standard Rules (this day only)</div>
+
+      <div class="override-row">
+        <label>Standard Arrive Time
+          <input type="time" id="dm-ov-arrive" lang="en-GB" placeholder="09:30">
+          <small class="ov-hint" id="dm-def-arrive">Default: --</small>
+        </label>
+        <button type="button" class="btn small ghost clear-btn dm-clear-btn" data-target="dm-ov-arrive">Clear</button>
+      </div>
+      <div class="override-row">
+        <label>Late Arrival Threshold
+          <input type="time" id="dm-ov-late" lang="en-GB" placeholder="09:45">
+          <small class="ov-hint" id="dm-def-late">Default: --</small>
+        </label>
+        <button type="button" class="btn small ghost clear-btn dm-clear-btn" data-target="dm-ov-late">Clear</button>
+      </div>
+      <div class="override-row">
+        <label>Standard Leave Time
+          <input type="time" id="dm-ov-leave" lang="en-GB" placeholder="18:30">
+          <small class="ov-hint" id="dm-def-leave">Default: --</small>
+        </label>
+        <button type="button" class="btn small ghost clear-btn dm-clear-btn" data-target="dm-ov-leave">Clear</button>
+      </div>
+      <div class="override-row">
+        <label>Standard Lunch Duration (min)
+          <input type="number" id="dm-ov-lunchdur" min="0" placeholder="60">
+          <small class="ov-hint" id="dm-def-lunchdur">Default: --</small>
+        </label>
+        <button type="button" class="btn small ghost clear-btn dm-clear-btn" data-target="dm-ov-lunchdur">Clear</button>
+      </div>
+      <div class="override-row">
+        <label>Lunch Boundary Start
+          <input type="time" id="dm-ov-lbstart" lang="en-GB" placeholder="12:00">
+          <small class="ov-hint" id="dm-def-lbstart">Default: --</small>
+        </label>
+        <button type="button" class="btn small ghost clear-btn dm-clear-btn" data-target="dm-ov-lbstart">Clear</button>
+      </div>
+      <div class="override-row">
+        <label>Lunch Boundary End
+          <input type="time" id="dm-ov-lbend" lang="en-GB" placeholder="14:00">
+          <small class="ov-hint" id="dm-def-lbend">Default: --</small>
+        </label>
+        <button type="button" class="btn small ghost clear-btn dm-clear-btn" data-target="dm-ov-lbend">Clear</button>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn danger" id="dm-clear-all">Clear Overrides</button>
+        <button class="btn danger" id="dm-delete-times">Delete Times</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn primary" id="dm-save" style="flex:1 1 100%;">Save</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Filters Modal (Records tab) -->
+<div id="filtersModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Filters</h3>
+      <button type="button" class="modal-close-btn" id="fm-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="filters-list">
+        <label class="checkbox-row" for="fm-issue-late"><input type="checkbox" id="fm-issue-late"> Late arrival</label>
+        <label class="checkbox-row" for="fm-issue-lunch"><input type="checkbox" id="fm-issue-lunch"> Lunch issue</label>
+        <label class="checkbox-row" for="fm-issue-delay"><input type="checkbox" id="fm-issue-delay"> Leave delay</label>
+        <div id="fm-delay-options">
+          <label class="radio-row"><input type="radio" name="fm-delay-threshold" value="any"> Any delay</label>
+          <label class="radio-row"><input type="radio" name="fm-delay-threshold" value="15"> Over 15m</label>
+          <label class="radio-row"><input type="radio" name="fm-delay-threshold" value="30"> Over 30m</label>
+          <label class="radio-row"><input type="radio" name="fm-delay-threshold" value="60"> Over 1h</label>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn danger" id="fm-reset">Reset</button>
+        <button class="btn primary" id="fm-apply">Apply filters</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= Storage Keys ================= */
+const K_SETTINGS = 'ltt2_settings';
+const K_RECORDS = 'ltt2_records';
+const K_OVERRIDES = 'ltt2_overrides';
+const K_APPICON = 'ltt2_appicon';
+
+function defaultSettings(){
+  return {
+    companyName: '',
+    arriveTime: '09:30',
+    lateThreshold: '09:45',
+    leaveTime: '18:30',
+    lunchDuration: 60,
+    lunchBoundaryStart: '12:00',
+    lunchBoundaryEnd: '14:00',
+    workingDays: [1,2,3,4,5]
+  };
+}
+function loadJSON(key, fallback){
+  try{ const raw = localStorage.getItem(key); if(raw) return JSON.parse(raw); }catch(e){}
+  return fallback;
+}
+function saveSettings(){ localStorage.setItem(K_SETTINGS, JSON.stringify(settings)); }
+function saveRecords(){ localStorage.setItem(K_RECORDS, JSON.stringify(records)); }
+function saveOverrides(){ localStorage.setItem(K_OVERRIDES, JSON.stringify(overrides)); }
+
+let settings = Object.assign(defaultSettings(), loadJSON(K_SETTINGS, {}));
+let records = loadJSON(K_RECORDS, {});
+let overrides = loadJSON(K_OVERRIDES, {});
+let appIconData = loadJSON(K_APPICON, null);
+let manifestBlobUrl = null;
+
+/* ================= Company Name ================= */
+function renderCompanyDisplay(){
+  const el = document.getElementById('company-name-display');
+  el.textContent = settings.companyName && settings.companyName.trim() ? settings.companyName.trim() : 'Company Name';
+}
+
+/* ================= App Icon ================= */
+function roundedRectPath(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function drawGeneratedIcon(bg, emoji, textColor){
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  roundedRectPath(ctx,0,0,size,size, size*0.18);
+  ctx.fillStyle = bg || '#0B5FFF';
+  ctx.fill();
+  ctx.fillStyle = textColor || '#ffffff';
+  ctx.font = `${Math.round(size*0.5)}px -apple-system, "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText((emoji || '⏱').slice(0,2), size/2, size*0.56);
+  return canvas.toDataURL('image/png');
+}
+function defaultIconLetter(){
+  const name = (settings.companyName || 'WorksLog').trim();
+  return name ? name[0].toUpperCase() : 'W';
+}
+function generateDefaultIconDataURL(){
+  return drawGeneratedIcon('#0B5FFF', defaultIconLetter(), '#ffffff');
+}
+function resizeImageToIcon(img){
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const scale = Math.max(size/img.width, size/img.height);
+  const w = img.width*scale, h = img.height*scale;
+  const x = (size-w)/2, y = (size-h)/2;
+  roundedRectPath(ctx,0,0,size,size, size*0.18);
+  ctx.save();
+  ctx.clip();
+  ctx.drawImage(img, x, y, w, h);
+  ctx.restore();
+  return canvas.toDataURL('image/png');
+}
+function getCurrentIconDataUrl(){
+  return (appIconData && appIconData.dataUrl) ? appIconData.dataUrl : generateDefaultIconDataURL();
+}
+function applyAppIcon(){
+  const dataUrl = getCurrentIconDataUrl();
+  const appleLink = document.getElementById('apple-touch-icon-link');
+  const favLink = document.getElementById('favicon-link');
+  if(appleLink) appleLink.setAttribute('href', dataUrl);
+  if(favLink) favLink.setAttribute('href', dataUrl);
+
+  const appName = (settings.companyName && settings.companyName.trim()) ? settings.companyName.trim() + ' Tracker' : 'WorksLog';
+  const titleMeta = document.getElementById('apple-title-meta');
+  if(titleMeta) titleMeta.setAttribute('content', appName.length > 30 ? appName.slice(0,30) : appName);
+
+  const manifest = {
+    name: appName,
+    short_name: appName.length > 12 ? appName.slice(0,12) : appName,
+    start_url: '.',
+    display: 'standalone',
+    background_color: '#ffffff',
+    theme_color: '#0B5FFF',
+    icons: [
+      { src: dataUrl, sizes: '192x192', type: 'image/png' },
+      { src: dataUrl, sizes: '512x512', type: 'image/png' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  if(manifestBlobUrl) URL.revokeObjectURL(manifestBlobUrl);
+  manifestBlobUrl = URL.createObjectURL(blob);
+  const manifestLink = document.getElementById('manifest-link');
+  if(manifestLink) manifestLink.setAttribute('href', manifestBlobUrl);
+}
+function saveAppIcon(obj){
+  appIconData = obj;
+  if(obj) localStorage.setItem(K_APPICON, JSON.stringify(obj));
+  else localStorage.removeItem(K_APPICON);
+  applyAppIcon();
+}
+
+/* ================= Helpers ================= */
+function pad2(n){ return String(n).padStart(2,'0'); }
+function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function timeToMin(t){ if(!t) return null; const [h,m]=t.split(':').map(Number); return h*60+m; }
+function minToHM(min){
+  if(min==null || isNaN(min)) return '--:--';
+  let m = Math.round(min);
+  m = ((m % 1440) + 1440) % 1440;
+  return pad2(Math.floor(m/60))+':'+pad2(m%60);
+}
+function nowHM(){ const d = new Date(); return pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+
+function formatMinutesUnsigned(totalMinutes){
+  totalMinutes = Math.max(0, Math.round(totalMinutes || 0));
+  const h = Math.floor(totalMinutes/60);
+  const m = totalMinutes % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+function formatMinutesSigned(n){
+  if(n==null || isNaN(n)) return '0m';
+  const r = Math.round(n);
+  const sign = r < 0 ? '-' : (r > 0 ? '+' : '');
+  return sign + formatMinutesUnsigned(Math.abs(r));
+}
+
+const DOW_ABBR = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function formatDateDisplay(ds){
+  const d = new Date(ds+'T00:00:00');
+  return `${DOW_ABBR[d.getDay()]}, ${d.getDate()} ${MONTH_ABBR[d.getMonth()]} ${d.getFullYear()}`;
+}
+function formatDateShort(ds){
+  const d = new Date(ds+'T00:00:00');
+  return `${DOW_ABBR[d.getDay()]} ${d.getDate()} ${MONTH_ABBR[d.getMonth()]}`;
+}
+function formatMonthDisplay(ym){
+  const [y,m] = ym.split('-').map(Number);
+  return `${MONTH_FULL[m-1]} ${y}`;
+}
+function formatMonthDay(ds){
+  const d = new Date(ds+'T00:00:00');
+  return `${MONTH_ABBR[d.getMonth()]} ${pad2(d.getDate())}`;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function monthDates(ym){
+  const [y,m] = ym.split('-').map(Number);
+  const days = new Date(y,m,0).getDate();
+  const arr = [];
+  for(let d=1; d<=days; d++) arr.push(`${y}-${pad2(m)}-${pad2(d)}`);
+  return arr;
+}
+function dowOf(ds){ return new Date(ds+'T00:00:00').getDay(); }
+
+function getWeekDates(ds){
+  const d = new Date(ds+'T00:00:00');
+  const nDay = (d.getDay() + 6) % 7;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - nDay);
+  const dates = [];
+  for(let i=0;i<7;i++){
+    const dt = new Date(monday);
+    dt.setDate(monday.getDate()+i);
+    dates.push(`${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}`);
+  }
+  return dates;
+}
+function getYearDates(year){
+  let arr = [];
+  for(let m=1;m<=12;m++) arr = arr.concat(monthDates(`${year}-${pad2(m)}`));
+  return arr;
+}
+
+/* ================= Custom Time Slot helpers ================= */
+function getCustomSlots(ds){
+  return (records[ds] && records[ds].custom) || [];
+}
+function sortedCustomSlots(ds){
+  return getCustomSlots(ds).slice().sort((a,b)=> (a.time||'').localeCompare(b.time||''));
+}
+
+/* ================= Core Logic ================= */
+function getOverride(ds){ return overrides[ds] || {}; }
+function getConfig(ds){
+  const ov = getOverride(ds);
+  return {
+    arriveTime: ov.arriveTime || settings.arriveTime,
+    lateThreshold: ov.lateThreshold || settings.lateThreshold,
+    leaveTime: ov.leaveTime || settings.leaveTime,
+    lunchDuration: (ov.lunchDuration != null && ov.lunchDuration !== '') ? Number(ov.lunchDuration) : Number(settings.lunchDuration),
+    lunchBoundaryStart: ov.lunchBoundaryStart || settings.lunchBoundaryStart,
+    lunchBoundaryEnd: ov.lunchBoundaryEnd || settings.lunchBoundaryEnd,
+    dayType: ov.dayType || '',
+    label: ov.label || '',
+    remark: ov.remark || ''
+  };
+}
+function isWorkingDay(ds){
+  const cfg = getConfig(ds);
+  if(cfg.dayType === 'holiday') return false;
+  if(cfg.dayType === 'paidHoliday') return true;
+  if(cfg.dayType === 'specialWorking') return true;
+  return settings.workingDays.includes(dowOf(ds));
+}
+function hasOverride(ds){
+  const ov = overrides[ds];
+  if(!ov) return false;
+  return Object.keys(ov).some(k => ov[k] !== undefined && ov[k] !== '' && ov[k] !== null);
+}
+
+function computeStatus(ds){
+  const cfg = getConfig(ds);
+  const rec = records[ds] || {};
+  const working = isWorkingDay(ds);
+  const hasArrive = !!rec.arrive;
+
+  let arrivalLateMinutes = 0;
+  if(hasArrive){
+    const a = timeToMin(rec.arrive);
+    const lt = timeToMin(cfg.lateThreshold);
+    const std = timeToMin(cfg.arriveTime);
+    if(a > lt) arrivalLateMinutes = a - std;
+  }
+
+  let lunchOvertimeMinutes = 0, lunchOutMinutes = 0, lunchPenalty = 0, lunchDuration = null;
+  if(rec.lunchStart && rec.lunchEnd){
+    const ls = timeToMin(rec.lunchStart), le = timeToMin(rec.lunchEnd);
+    lunchDuration = le - ls;
+    lunchOvertimeMinutes = Math.max(0, lunchDuration - cfg.lunchDuration);
+    const bs = timeToMin(cfg.lunchBoundaryStart), be = timeToMin(cfg.lunchBoundaryEnd);
+    lunchOutMinutes = Math.max(0, bs - ls) + Math.max(0, le - be);
+    lunchPenalty = Math.max(lunchOvertimeMinutes, lunchOutMinutes);
+  }
+
+  const earliestLeaveMin = timeToMin(cfg.leaveTime) + arrivalLateMinutes + lunchPenalty;
+
+  let leaveDelay = null;
+  if(rec.realLeave){
+    leaveDelay = timeToMin(rec.realLeave) - earliestLeaveMin;
+  }
+
+  return {
+    ds, cfg, rec, working, hasArrive,
+    arrivalLateMinutes, lunchOvertimeMinutes, lunchOutMinutes, lunchPenalty, lunchDuration,
+    earliestLeaveMin, leaveDelay,
+    isHoliday: cfg.dayType === 'holiday',
+    isPaidHoliday: cfg.dayType === 'paidHoliday',
+    isSpecialWorking: cfg.dayType === 'specialWorking',
+    override: hasOverride(ds)
+  };
+}
+
+function buildBadges(st){
+  const badges = [];
+  if(st.isHoliday){
+    badges.push({cls:'holiday', text: st.hasArrive ? 'Holiday Work' : 'Holiday'});
+  } else if(st.isPaidHoliday){
+    badges.push({cls:'holiday', text: st.hasArrive ? 'Paid Holiday Work' : 'Paid Holiday'});
+  } else if(st.isSpecialWorking){
+    badges.push({cls:'purple', text:'Special Workday'});
+  } else if(!st.working){
+    badges.push({cls:'holiday', text: st.hasArrive ? 'Weekend Work' : 'Weekend'});
+  }
+
+  if(st.working || st.hasArrive){
+    if(!st.hasArrive){
+      badges.push({cls:'grey', text:'No Data'});
+    } else {
+      if(st.arrivalLateMinutes > 0) badges.push({cls:'red', text:`Late +${formatMinutesUnsigned(st.arrivalLateMinutes)}`});
+      else badges.push({cls:'green', text:'On Time'});
+      if(st.lunchPenalty > 0) badges.push({cls:'orange', text:`Lunch +${formatMinutesUnsigned(st.lunchPenalty)}`});
+      if(st.leaveDelay != null){
+        if(st.leaveDelay > 0) badges.push({cls:'red', text:`Delay +${formatMinutesUnsigned(st.leaveDelay)}`});
+        else if(st.leaveDelay < 0) badges.push({cls:'blue', text:`Early ${formatMinutesUnsigned(Math.abs(st.leaveDelay))}`});
+        else badges.push({cls:'green', text:'On Time Leave'});
+      }
+    }
+  }
+
+  if(st.override && !st.cfg.dayType) badges.push({cls:'purple', text:'Custom'});
+  if(st.cfg.label) badges.push({cls:'purple', text: escapeHtml(st.cfg.label)});
+  return badges;
+}
+function renderBadges(badges){
+  return badges.map(b=>`<span class="tag tag-${b.cls}">${b.text}</span>`).join('');
+}
+
+function setRecordField(ds, field, val){
+  if(!records[ds]) records[ds] = {};
+  if(val) records[ds][field] = val; else delete records[ds][field];
+  if(Object.keys(records[ds]).length === 0) delete records[ds];
+  saveRecords();
+}
+
+/* ================= Today Tab ================= */
+let todayPhase = null;
+let todayRenderedDate = null;
+
+function computeNowSeconds(){
+  const now = new Date();
+  return now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
+}
+function formatCountdownParts(totalSeconds){
+  totalSeconds = Math.max(0, Math.round(totalSeconds));
+  const h = Math.floor(totalSeconds/3600);
+  const m = Math.floor((totalSeconds%3600)/60);
+  const s = totalSeconds%60;
+  const main = h>0 ? `${h}h ${m}m` : `${m}m`;
+  const small = `${s}s`;
+  return {main, small};
+}
+
+function renderActiveStatusBlock(st){
+  if(st.rec.realLeave){
+    todayPhase = 'left';
+    return `<div class="earliest-block">
+      <div class="status-main">Left at ${st.rec.realLeave}</div>
+      <div class="status-sub">Earliest leave time ${minToHM(st.earliestLeaveMin)}</div>
+    </div>`;
+  }
+
+  const nowSeconds = computeNowSeconds();
+  const earliestSeconds = st.earliestLeaveMin * 60;
+
+  if(nowSeconds < earliestSeconds){
+    todayPhase = 'countdown';
+    const parts = formatCountdownParts(earliestSeconds - nowSeconds);
+    return `<div class="earliest-block">
+      <div class="status-label">Leave In</div>
+      <div class="status-main"><span id="today-main-text">${parts.main}</span> <span class="status-main-small" id="today-main-small">${parts.small}</span></div>
+      <div class="status-sub">Earliest leave time ${minToHM(st.earliestLeaveMin)}</div>
+    </div>`;
+  }
+
+  todayPhase = 'canleave';
+  return `<div class="earliest-block">
+    <div class="status-main">You can leave now</div>
+    <div class="status-sub">Earliest leave time ${minToHM(st.earliestLeaveMin)}</div>
+  </div>`;
+}
+
+function renderToday(){
+  const ds = todayStr();
+  todayRenderedDate = ds;
+  const st = computeStatus(ds);
+  const dateLabel = formatDateDisplay(ds);
+
+  let html = `<div class="card"><div class="today-date">${dateLabel}</div>`;
+
+  if(!st.working && !st.hasArrive){
+    todayPhase = 'holiday';
+    html += `<div class="holiday-banner">🎉 Today is Holiday!<br><span style="font-weight:400;font-size:13px;">No attendance record is needed today.</span></div>`;
+  } else if(!st.hasArrive){
+    todayPhase = 'nodata';
+    html += `<div class="earliest-block">
+      <div class="status-main pending">No arrival time yet</div>
+      <div class="status-sub">Start by adding your arrival time.</div>
+    </div>`;
+    html += `<div class="tags">${renderBadges(buildBadges(st))}</div>`;
+  } else {
+    html += renderActiveStatusBlock(st);
+    html += `<div class="tags">${renderBadges(buildBadges(st))}</div>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="card"><h3>Today's Record</h3>`;
+  html += fieldRowHtml('arrive','Arrive Office', st.rec.arrive);
+  html += fieldRowHtml('lunchStart','Lunch Start', st.rec.lunchStart);
+  html += fieldRowHtml('lunchEnd','Lunch End', st.rec.lunchEnd);
+  html += fieldRowHtml('realLeave','Real Leave', st.rec.realLeave);
+
+  sortedCustomSlots(ds).forEach(slot=>{
+    html += `<div class="field-row">
+      <div class="field-label">${escapeHtml(slot.label)}</div>
+      <div class="field-value">${slot.time}</div>
+      <button class="btn small ghost cs-edit-btn" data-ds="${ds}" data-id="${slot.id}">Edit</button>
+    </div>`;
+  });
+
+  html += `<div style="margin-top:14px;">
+    <button class="btn ghost full" id="today-add-customslot">+ Add Custom Time Slot</button>
+    <button class="btn ghost full" id="today-open-daymodal">⚙️ Day Type / Label / Overrides</button>
+  </div>`;
+  html += `</div>`;
+
+  document.getElementById('tab-today').innerHTML = html;
+
+  document.querySelectorAll('.field-edit-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> openTimeModal(ds, btn.dataset.field));
+  });
+
+  document.querySelectorAll('.cs-edit-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> openCustomSlotModal(btn.dataset.ds, btn.dataset.id));
+  });
+  const addCsBtn = document.getElementById('today-add-customslot');
+  if(addCsBtn) addCsBtn.addEventListener('click', ()=> openCustomSlotModal(ds, null));
+
+  const openDayBtn = document.getElementById('today-open-daymodal');
+  if(openDayBtn){
+    openDayBtn.addEventListener('click', ()=> openDayModal(ds));
+  }
+}
+
+function tickToday(){
+  if(todayStr() !== todayRenderedDate){ renderToday(); return; }
+  if(todayPhase !== 'countdown') return;
+
+  const ds = todayStr();
+  const st = computeStatus(ds);
+  const nowSeconds = computeNowSeconds();
+  const earliestSeconds = st.earliestLeaveMin * 60;
+
+  if(nowSeconds >= earliestSeconds){
+    renderToday();
+    return;
+  }
+
+  const parts = formatCountdownParts(earliestSeconds - nowSeconds);
+  const mainEl = document.getElementById('today-main-text');
+  const smallEl = document.getElementById('today-main-small');
+  if(mainEl) mainEl.textContent = parts.main;
+  if(smallEl) smallEl.textContent = parts.small;
+}
+
+function fieldRowHtml(field, label, val){
+  return `<div class="field-row">
+    <div class="field-label">${label}</div>
+    <div class="field-value">${val || '--:--'}</div>
+    <button class="btn small ghost field-edit-btn" data-field="${field}">${val ? 'Edit' : 'Add'}</button>
+  </div>`;
+}
+
+/* ================= Time Modal (Today quick edit) ================= */
+let tmCtx = { ds:null, field:null };
+function fieldLabel(f){
+  return {arrive:'Arrive Office', lunchStart:'Lunch Start', lunchEnd:'Lunch End', realLeave:'Real Leave'}[f] || 'Time';
+}
+function openTimeModal(ds, field){
+  tmCtx = { ds, field };
+  const rec = records[ds] || {};
+  document.getElementById('tm-title').textContent = fieldLabel(field);
+  document.getElementById('tm-input').value = rec[field] || nowHM();
+  document.getElementById('timeModal').classList.remove('hidden');
+}
+function closeTimeModal(){ document.getElementById('timeModal').classList.add('hidden'); }
+
+function nudgeTmTime(delta){
+  const inp = document.getElementById('tm-input');
+  let mins;
+  if(inp.value){
+    mins = timeToMin(inp.value);
+  } else {
+    mins = timeToMin(nowHM());
+  }
+  mins = ((mins + delta) % 1440 + 1440) % 1440;
+  inp.value = minToHM(mins);
+}
+
+document.getElementById('tm-close').addEventListener('click', closeTimeModal);
+document.getElementById('tm-minus1').addEventListener('click', ()=> nudgeTmTime(-1));
+document.getElementById('tm-plus1').addEventListener('click', ()=> nudgeTmTime(1));
+document.getElementById('tm-clear').addEventListener('click', ()=>{
+  setRecordField(tmCtx.ds, tmCtx.field, '');
+  closeTimeModal();
+  refreshAll();
+});
+document.getElementById('tm-save').addEventListener('click', ()=>{
+  const val = document.getElementById('tm-input').value;
+  setRecordField(tmCtx.ds, tmCtx.field, val);
+  closeTimeModal();
+  refreshAll();
+});
+
+/* ================= Custom Time Slot Modal ================= */
+let csCtx = { ds:null, id:null };
+
+function openCustomSlotModal(ds, id){
+  csCtx = { ds, id: id || null };
+  const slot = id ? getCustomSlots(ds).find(s=>s.id===id) : null;
+  document.getElementById('cs-title').textContent = slot ? 'Edit Time Slot' : 'Add Time Slot';
+  document.getElementById('cs-label').value = slot ? slot.label : '';
+  document.getElementById('cs-input').value = slot ? slot.time : nowHM();
+  document.getElementById('cs-delete').style.display = slot ? 'inline-flex' : 'none';
+  document.getElementById('customSlotModal').classList.remove('hidden');
+}
+function closeCustomSlotModal(){
+  document.getElementById('customSlotModal').classList.add('hidden');
+}
+function nudgeCsTime(delta){
+  const inp = document.getElementById('cs-input');
+  let mins = inp.value ? timeToMin(inp.value) : timeToMin(nowHM());
+  mins = ((mins + delta) % 1440 + 1440) % 1440;
+  inp.value = minToHM(mins);
+}
+function afterCustomSlotChange(ds){
+  closeCustomSlotModal();
+  refreshAll();
+  if(editingDate === ds && !document.getElementById('dayModal').classList.contains('hidden')){
+    renderDayModalCustomSlots(ds);
+  }
+}
+
+document.getElementById('cs-close').addEventListener('click', closeCustomSlotModal);
+document.getElementById('cs-minus1').addEventListener('click', ()=> nudgeCsTime(-1));
+document.getElementById('cs-plus1').addEventListener('click', ()=> nudgeCsTime(1));
+
+document.getElementById('cs-save').addEventListener('click', ()=>{
+  const label = document.getElementById('cs-label').value.trim();
+  const time = document.getElementById('cs-input').value;
+  if(!label){ alert('Please enter a label'); return; }
+  if(!time){ alert('Please pick a time'); return; }
+
+  const ds = csCtx.ds;
+  if(!records[ds]) records[ds] = {};
+  if(!records[ds].custom) records[ds].custom = [];
+
+  if(csCtx.id){
+    const slot = records[ds].custom.find(s=>s.id===csCtx.id);
+    if(slot){ slot.label = label; slot.time = time; }
+  } else {
+    records[ds].custom.push({ id:'c'+Date.now()+Math.random().toString(36).slice(2,6), label, time });
+  }
+  saveRecords();
+  afterCustomSlotChange(ds);
+});
+
+document.getElementById('cs-delete').addEventListener('click', ()=>{
+  if(!csCtx.id) return;
+  const ds = csCtx.ds;
+  if(records[ds] && records[ds].custom){
+    records[ds].custom = records[ds].custom.filter(s=>s.id!==csCtx.id);
+    if(!records[ds].custom.length) delete records[ds].custom;
+    if(!Object.keys(records[ds]).length) delete records[ds];
+    saveRecords();
+  }
+  afterCustomSlotChange(ds);
+});
+
+/* ================= Records Tab ================= */
+let recordsMonth = null;
+let recordsSearch = '';
+let recordsQuickFilter = 'all';
+let recordsIssueFilters = { late:false, lunch:false, delay:false };
+let recordsDelayThreshold = 'any';
+
+function dayMatchesQuickFilter(st){
+  switch(recordsQuickFilter){
+    case 'today': return st.ds === todayStr();
+    case 'week':  return getWeekDates(todayStr()).includes(st.ds);
+    case 'workingdays': return st.working;
+    default: return true;
+  }
+}
+function dayMatchesIssueFilters(st){
+  const active = [];
+  if(recordsIssueFilters.late) active.push('late');
+  if(recordsIssueFilters.lunch) active.push('lunch');
+  if(recordsIssueFilters.delay) active.push('delay');
+  if(!active.length) return true;
+  const thresholdMap = { any:0, '15':15, '30':30, '60':60 };
+  const th = thresholdMap[recordsDelayThreshold] != null ? thresholdMap[recordsDelayThreshold] : 0;
+  return active.some(key=>{
+    if(key==='late') return st.hasArrive && st.arrivalLateMinutes > 0;
+    if(key==='lunch') return st.lunchPenalty > 0;
+    if(key==='delay') return st.leaveDelay != null && st.leaveDelay > th;
+    return false;
+  });
+}
+function dayMatchesSearch(st, q){
+  if(!q) return true;
+  q = q.trim().toLowerCase();
+  if(!q) return true;
+  const customText = getCustomSlots(st.ds).map(s=>s.label+' '+s.time).join(' ');
+  const haystack = [
+    st.ds,
+    formatDateShort(st.ds),
+    formatDateDisplay(st.ds),
+    st.cfg.label || '',
+    st.cfg.remark || '',
+    st.rec.arrive || '', st.rec.lunchStart || '', st.rec.lunchEnd || '', st.rec.realLeave || '',
+    customText
+  ].join(' ').toLowerCase();
+  return haystack.includes(q);
+}
+
+function renderRecords(){
+  if(!recordsMonth) recordsMonth = todayStr().slice(0,7);
+  const dates = monthDates(recordsMonth);
+  const allStats = dates.map(ds => computeStatus(ds));
+
+  const visibleStats = allStats.filter(st =>
+    dayMatchesQuickFilter(st) && dayMatchesIssueFilters(st) && dayMatchesSearch(st, recordsSearch)
+  );
+
+  const activeIssueCount = [recordsIssueFilters.late, recordsIssueFilters.lunch, recordsIssueFilters.delay].filter(Boolean).length;
+
+  const cardsHtml = visibleStats.length
+    ? visibleStats.map(st => dayCardHtml(st)).join('')
+    : `<div class="card"><div class="empty-hint">No days match your search / filter.</div></div>`;
+
+  document.getElementById('tab-records').innerHTML = `
+    <div class="card dashboard-card">
+      <div class="dash-header">
+        <div class="dash-month">${formatMonthDisplay(recordsMonth)}</div>
+        <div class="dash-cal-wrap">
+          <div class="dash-cal-btn" aria-hidden="true">📅</div>
+          <input type="month" id="records-month" class="dash-month-input" value="${recordsMonth}" aria-label="Change month">
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="search-filter-row">
+        <input type="text" id="records-search" placeholder="Search days..." value="${escapeHtml(recordsSearch)}">
+        <button type="button" class="btn ghost small filters-btn" id="open-filters-btn">Filters${activeIssueCount>0?`<span class="filters-badge">${activeIssueCount}</span>`:''}</button>
+      </div>
+      <div class="quick-chips">
+        <button type="button" class="filter-chip ${recordsQuickFilter==='all'?'active':''}" data-quick="all">All</button>
+        <button type="button" class="filter-chip ${recordsQuickFilter==='today'?'active':''}" data-quick="today">Today</button>
+        <button type="button" class="filter-chip ${recordsQuickFilter==='week'?'active':''}" data-quick="week">This week</button>
+        <button type="button" class="filter-chip ${recordsQuickFilter==='workingdays'?'active':''}" data-quick="workingdays">Working days</button>
+      </div>
+    </div>
+    <div class="filter-count">${visibleStats.length} day${visibleStats.length===1?'':'s'} shown</div>
+
+    <div class="day-list">${cardsHtml}</div>
+  `;
+
+  document.getElementById('records-month').addEventListener('change', e=>{
+    recordsMonth = e.target.value;
+    renderRecords();
+  });
+  document.getElementById('records-search').addEventListener('input', e=>{
+    recordsSearch = e.target.value;
+    renderRecords();
+  });
+  document.getElementById('open-filters-btn').addEventListener('click', openFiltersModal);
+  document.querySelectorAll('[data-quick]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      recordsQuickFilter = btn.dataset.quick;
+      renderRecords();
+    });
+  });
+
+  document.querySelectorAll('.day-card').forEach(c=>{
+    c.addEventListener('click', ()=> openDayModal(c.dataset.date));
+  });
+}
+function dayCardHtml(st){
+  const isToday = st.ds === todayStr();
+  const badges = buildBadges(st);
+  const showEarliest = (st.working || st.hasArrive) ? minToHM(st.earliestLeaveMin) : '--:--';
+  const customCount = getCustomSlots(st.ds).length;
+  return `<div class="day-card ${isToday?'today':''}" data-date="${st.ds}">
+    <div class="day-card-top">
+      <div class="day-card-date">${formatDateShort(st.ds)}${isToday?' •':''}</div>
+      <div class="day-card-badges">${renderBadges(badges)}</div>
+    </div>
+    <div class="day-card-times">
+      <span>Arrive: ${st.rec.arrive || '--:--'}</span>
+      <span>Lunch: ${st.rec.lunchStart || '--:--'}–${st.rec.lunchEnd || '--:--'}</span>
+      <span>Leave: ${st.rec.realLeave || '--:--'}</span>
+      <span>Earliest: ${showEarliest}</span>
+      ${customCount ? `<span>+${customCount} custom</span>` : ''}
+    </div>
+    ${st.cfg.remark ? `<div class="day-card-remark">${escapeHtml(st.cfg.remark)}</div>` : ''}
+  </div>`;
+}
+
+/* ================= Filters Modal (Records tab) ================= */
+function updateDelayOptionsVisibility(){
+  const delayChecked = document.getElementById('fm-issue-delay').checked;
+  document.getElementById('fm-delay-options').classList.toggle('open', delayChecked);
+}
+function openFiltersModal(){
+  document.getElementById('fm-issue-late').checked = recordsIssueFilters.late;
+  document.getElementById('fm-issue-lunch').checked = recordsIssueFilters.lunch;
+  document.getElementById('fm-issue-delay').checked = recordsIssueFilters.delay;
+  document.querySelectorAll('input[name="fm-delay-threshold"]').forEach(r=>{
+    r.checked = (r.value === recordsDelayThreshold);
+  });
+  updateDelayOptionsVisibility();
+  document.getElementById('filtersModal').classList.remove('hidden');
+}
+function closeFiltersModal(){
+  document.getElementById('filtersModal').classList.add('hidden');
+}
+document.getElementById('fm-close').addEventListener('click', closeFiltersModal);
+document.getElementById('fm-issue-delay').addEventListener('change', updateDelayOptionsVisibility);
+document.getElementById('fm-reset').addEventListener('click', ()=>{
+  document.getElementById('fm-issue-late').checked = false;
+  document.getElementById('fm-issue-lunch').checked = false;
+  document.getElementById('fm-issue-delay').checked = false;
+  const anyRadio = document.querySelector('input[name="fm-delay-threshold"][value="any"]');
+  if(anyRadio) anyRadio.checked = true;
+  updateDelayOptionsVisibility();
+});
+document.getElementById('fm-apply').addEventListener('click', ()=>{
+  recordsIssueFilters.late = document.getElementById('fm-issue-late').checked;
+  recordsIssueFilters.lunch = document.getElementById('fm-issue-lunch').checked;
+  recordsIssueFilters.delay = document.getElementById('fm-issue-delay').checked;
+  const checked = document.querySelector('input[name="fm-delay-threshold"]:checked');
+  recordsDelayThreshold = checked ? checked.value : 'any';
+  closeFiltersModal();
+  renderRecords();
+});
+
+/* ================= Reports Tab ================= */
+let reportsPeriod = 'month';
+let reportsAnchorDate = todayStr();
+
+function getReportDates(){
+  if(reportsPeriod === 'week') return getWeekDates(reportsAnchorDate);
+  if(reportsPeriod === 'year') return getYearDates(reportsAnchorDate.slice(0,4));
+  return monthDates(reportsAnchorDate.slice(0,7));
+}
+function getReportLabel(){
+  if(reportsPeriod === 'week'){
+    const dates = getWeekDates(reportsAnchorDate);
+    const start = new Date(dates[0]+'T00:00:00');
+    const end = new Date(dates[6]+'T00:00:00');
+    if(start.getMonth() === end.getMonth()){
+      return `${start.getDate()}–${end.getDate()} ${MONTH_FULL[start.getMonth()]} ${start.getFullYear()}`;
+    }
+    if(start.getFullYear() === end.getFullYear()){
+      return `${start.getDate()} ${MONTH_ABBR[start.getMonth()]} – ${end.getDate()} ${MONTH_ABBR[end.getMonth()]} ${end.getFullYear()}`;
+    }
+    return `${start.getDate()} ${MONTH_ABBR[start.getMonth()]} ${start.getFullYear()} – ${end.getDate()} ${MONTH_ABBR[end.getMonth()]} ${end.getFullYear()}`;
+  }
+  if(reportsPeriod === 'year') return `Year ${reportsAnchorDate.slice(0,4)}`;
+  return formatMonthDisplay(reportsAnchorDate.slice(0,7));
+}
+function shiftReportPeriod(dir){
+  const d = new Date(reportsAnchorDate+'T00:00:00');
+  if(reportsPeriod === 'week') d.setDate(d.getDate() + dir*7);
+  else if(reportsPeriod === 'year') d.setFullYear(d.getFullYear() + dir);
+  else d.setMonth(d.getMonth() + dir);
+  reportsAnchorDate = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  renderReports();
+}
+function setReportPeriod(p){
+  if(reportsPeriod === p) return;
+  reportsPeriod = p;
+  renderReports();
+}
+
+function insightLabel(late, lunch, leaveDelay){
+  const items = [];
+  if(late > 0) items.push({type:'late arrival', val:late});
+  if(lunch > 0) items.push({type:'lunch issue', val:lunch});
+  if(leaveDelay > 0) items.push({type:'leave delay', val:leaveDelay});
+  if(!items.length) return 'No issues';
+  items.sort((a,b)=>b.val-a.val);
+  return `+${formatMinutesUnsigned(items[0].val)} ${items[0].type}`;
+}
+function dayIssueScore(st){
+  const leaveDelay = (st.leaveDelay != null && st.leaveDelay > 0) ? st.leaveDelay : 0;
+  return st.arrivalLateMinutes + st.lunchPenalty + leaveDelay;
+}
+function computeDayInsights(dayStats){
+  const candidates = dayStats.filter(st => st.hasArrive);
+  if(!candidates.length) return { best:null, worst:null };
+  let best = candidates[0], worst = candidates[0];
+  let bestScore = dayIssueScore(best), worstScore = dayIssueScore(worst);
+  candidates.forEach(st=>{
+    const s = dayIssueScore(st);
+    if(s < bestScore){ bestScore = s; best = st; }
+    if(s > worstScore){ worstScore = s; worst = st; }
+  });
+  return { best, worst };
+}
+function dayInsightParts(st){
+  if(!st) return { label:'--', detail:'No data' };
+  const leaveDelay = (st.leaveDelay != null && st.leaveDelay > 0) ? st.leaveDelay : 0;
+  return { label: formatMonthDay(st.ds), detail: insightLabel(st.arrivalLateMinutes, st.lunchPenalty, leaveDelay) };
+}
+
+function computeMonthlyAggregates(year){
+  const months = [];
+  for(let m=1; m<=12; m++){
+    const dates = monthDates(`${year}-${pad2(m)}`);
+    let late=0, lunch=0, leaveDelay=0, hasData=false;
+    dates.forEach(ds=>{
+      const st = computeStatus(ds);
+      if(st.hasArrive){
+        hasData = true;
+        late += st.arrivalLateMinutes;
+        lunch += st.lunchPenalty;
+        if(st.leaveDelay != null && st.leaveDelay > 0) leaveDelay += st.leaveDelay;
+      }
+    });
+    months.push({ m, late, lunch, leaveDelay, hasData, score: late+lunch+leaveDelay });
+  }
+  return months;
+}
+function computeMonthInsights(year){
+  const months = computeMonthlyAggregates(year).filter(mo => mo.hasData);
+  if(!months.length) return { best:null, worst:null };
+  let best = months[0], worst = months[0];
+  months.forEach(mo=>{
+    if(mo.score < best.score) best = mo;
+    if(mo.score > worst.score) worst = mo;
+  });
+  return { best, worst };
+}
+function monthInsightParts(mo){
+  if(!mo) return { label:'--', detail:'No data' };
+  return { label: MONTH_FULL[mo.m-1], detail: insightLabel(mo.late, mo.lunch, mo.leaveDelay) };
+}
+
+function renderReports(){
+  const dates = getReportDates();
+  let workingDays=0, lateDays=0, totalLate=0, lunchDays=0, totalLunchOT=0, totalLunchOOB=0,
+      totalLunchPenalty=0, totalDelay=0, customDays=0, yellowDays=0, orangeDays=0, redDays=0;
+  const dayStats = [];
+
+  dates.forEach(ds=>{
+    const st = computeStatus(ds);
+    if(st.working) workingDays++;
+    if(st.hasArrive){
+      totalLate += st.arrivalLateMinutes;
+      if(st.arrivalLateMinutes > 0) lateDays++;
+      totalLunchOT += st.lunchOvertimeMinutes;
+      totalLunchOOB += st.lunchOutMinutes;
+      totalLunchPenalty += st.lunchPenalty;
+      if(st.lunchPenalty > 0) lunchDays++;
+    }
+    if(st.leaveDelay != null){
+      totalDelay += st.leaveDelay;
+      if(st.leaveDelay > 60) redDays++;
+      else if(st.leaveDelay > 30) orangeDays++;
+      else if(st.leaveDelay > 15) yellowDays++;
+    }
+    if(st.override) customDays++;
+    dayStats.push(st);
+  });
+
+  const label = getReportLabel();
+  const isYear = reportsPeriod === 'year';
+  const unit = isYear ? 'month' : 'day';
+
+  let bestParts, worstParts;
+  if(isYear){
+    const { best, worst } = computeMonthInsights(reportsAnchorDate.slice(0,4));
+    bestParts = monthInsightParts(best);
+    worstParts = monthInsightParts(worst);
+  } else {
+    const { best, worst } = computeDayInsights(dayStats);
+    bestParts = dayInsightParts(best);
+    worstParts = dayInsightParts(worst);
+  }
+
+  document.getElementById('tab-reports').innerHTML = `
+    <div class="card report-card">
+      <div class="period-tabs">
+        <button class="period-tab-btn ${reportsPeriod==='week'?'active':''}" data-period="week">Weekly</button>
+        <button class="period-tab-btn ${reportsPeriod==='month'?'active':''}" data-period="month">Monthly</button>
+        <button class="period-tab-btn ${reportsPeriod==='year'?'active':''}" data-period="year">Yearly</button>
+      </div>
+      <div class="period-nav">
+        <button type="button" class="period-nav-btn" id="period-prev" aria-label="Previous ${reportsPeriod}">‹</button>
+        <div class="period-nav-label">${label}</div>
+        <button type="button" class="period-nav-btn" id="period-next" aria-label="Next ${reportsPeriod}">›</button>
+      </div>
+
+      <div class="sub-heading">Insights</div>
+      <div class="insight-grid">
+        <div class="insight-card good">
+          <div class="insight-card-label">✅ Best ${unit}</div>
+          <div class="insight-card-date">${bestParts.label}</div>
+          <div class="insight-card-detail">${bestParts.detail}</div>
+        </div>
+        <div class="insight-card bad">
+          <div class="insight-card-label">⚠️ Needs attention</div>
+          <div class="insight-card-date">${worstParts.label}</div>
+          <div class="insight-card-detail">${worstParts.detail}</div>
+        </div>
+      </div>
+
+      <div class="sub-heading">Summary</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-num">${workingDays}</div>
+          <div class="stat-label">Working day${workingDays===1?'':'s'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">${customDays}</div>
+          <div class="stat-label">Custom day${customDays===1?'':'s'}</div>
+        </div>
+      </div>
+
+      <div class="sub-heading">Issue overview</div>
+      <div class="issue-list">
+        <div class="issue-row">
+          <div class="issue-row-main">
+            <div class="issue-row-label">Late arrivals</div>
+            <div class="issue-row-detail">${lateDays} day${lateDays===1?'':'s'} · ${formatMinutesUnsigned(totalLate)} total</div>
+          </div>
+          <div class="issue-badge ${lateDays>0?'warn':'ok'}">${lateDays>0?'Warning':'Good'}</div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-row-main">
+            <div class="issue-row-label">Lunch issues</div>
+            <div class="issue-row-detail">${lunchDays} day${lunchDays===1?'':'s'} · ${formatMinutesUnsigned(totalLunchPenalty)} total</div>
+          </div>
+          <div class="issue-badge ${lunchDays>0?'warn':'ok'}">${lunchDays>0?'Warning':'Good'}</div>
+        </div>
+      </div>
+
+      <div class="sub-heading no-line">Leave delay</div>
+      <div class="delay-list">
+        <div class="delay-row"><span>🟡 Over 15m</span><strong>${yellowDays} day${yellowDays===1?'':'s'}</strong></div>
+        <div class="delay-row"><span>🟠 Over 30m</span><strong>${orangeDays} day${orangeDays===1?'':'s'}</strong></div>
+        <div class="delay-row"><span>🔴 Over 1h</span><strong>${redDays} day${redDays===1?'':'s'}</strong></div>
+      </div>
+    </div>
+
+    <div class="section-heading">Export</div>
+    <div class="card">
+      <button class="btn ghost full" id="export-report-csv-btn">Export to Excel (CSV)</button>
+      <div class="empty-hint">Exports the ${reportsPeriod}ly summary and full daily breakdown for “${label}” as a CSV file.</div>
+    </div>
+  `;
+
+  document.querySelectorAll('.period-tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> setReportPeriod(btn.dataset.period));
+  });
+  document.getElementById('period-prev').addEventListener('click', ()=> shiftReportPeriod(-1));
+  document.getElementById('period-next').addEventListener('click', ()=> shiftReportPeriod(1));
+  document.getElementById('export-report-csv-btn').addEventListener('click', ()=>{
+    exportReportCSV(dayStats, label, {
+      workingDays, lateDays, totalLate, lunchDays, totalLunchOT, totalLunchOOB,
+      totalLunchPenalty, totalDelay, customDays
+    });
+  });
+}
+
+function csvField(v){
+  v = (v==null ? '' : String(v));
+  if(/[",\n]/.test(v)) return '"' + v.replace(/"/g,'""') + '"';
+  return v;
+}
+function exportReportCSV(dayStats, label, totals){
+  const lines = [];
+  lines.push(['Report Period', label].map(csvField).join(','));
+  lines.push(['Period Type', reportsPeriod.charAt(0).toUpperCase()+reportsPeriod.slice(1)].map(csvField).join(','));
+  lines.push('');
+  lines.push(['Metric','Value'].map(csvField).join(','));
+  lines.push(['Working Days', totals.workingDays].map(csvField).join(','));
+  lines.push(['Late Arrive Days', totals.lateDays].map(csvField).join(','));
+  lines.push(['Total Late Arrive', formatMinutesUnsigned(totals.totalLate)].map(csvField).join(','));
+  lines.push(['Lunch Problem Days', totals.lunchDays].map(csvField).join(','));
+  lines.push(['Total Lunch Overtime', formatMinutesUnsigned(totals.totalLunchOT)].map(csvField).join(','));
+  lines.push(['Total Lunch Out-of-Boundary', formatMinutesUnsigned(totals.totalLunchOOB)].map(csvField).join(','));
+  lines.push(['Total Lunch Penalty', formatMinutesUnsigned(totals.totalLunchPenalty)].map(csvField).join(','));
+  lines.push(['Total Leave Delay', formatMinutesSigned(totals.totalDelay)].map(csvField).join(','));
+  lines.push(['Custom Days', totals.customDays].map(csvField).join(','));
+  lines.push('');
+  lines.push(['Date','Day','Arrive','LunchStart','LunchEnd','RealLeave','LateMinutes','LunchPenaltyMinutes','LeaveDelayMinutes','Status']
+    .map(csvField).join(','));
+
+  dayStats.forEach(st=>{
+    const dowName = DOW_ABBR[dowOf(st.ds)];
+    let status = 'Normal';
+    if(st.isHoliday) status = st.hasArrive ? 'Holiday Work' : 'Holiday';
+    else if(st.isPaidHoliday) status = st.hasArrive ? 'Paid Holiday Work' : 'Paid Holiday';
+    else if(st.isSpecialWorking) status = 'Special Working Day';
+    else if(!st.working) status = st.hasArrive ? 'Weekend Work' : 'Weekend';
+    else if(!st.hasArrive) status = 'No Data';
+
+    const row = [
+      st.ds, dowName,
+      st.rec.arrive || '', st.rec.lunchStart || '', st.rec.lunchEnd || '', st.rec.realLeave || '',
+      st.hasArrive ? Math.round(st.arrivalLateMinutes) : '',
+      st.hasArrive ? Math.round(st.lunchPenalty) : '',
+      st.leaveDelay != null ? Math.round(st.leaveDelay) : '',
+      status
+    ];
+    lines.push(row.map(csvField).join(','));
+  });
+
+  const csvContent = lines.join('\r\n');
+  const blob = new Blob(['\ufeff'+csvContent], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `report-${reportsPeriod}-${reportsAnchorDate}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ================= Settings Tab ================= */
+function renderSettings(){
+  const wdNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const wdChecks = wdNames.map((n,i)=>`
+    <label class="weekday-check">
+      <input type="checkbox" class="wd-check" value="${i}" ${settings.workingDays.includes(i)?'checked':''}>
+      ${n}
+    </label>
+  `).join('');
+
+  const overrideEntries = Object.keys(overrides).filter(ds=>hasOverride(ds)).sort();
+  const typeLabels = {holiday:'Holiday', paidHoliday:'Paid Holiday', specialWorking:'Special Working Day'};
+  const overrideList = overrideEntries.map(ds=>{
+    const ov = overrides[ds];
+    const typeLabel = typeLabels[ov.dayType] || (ov.label ? 'Custom' : 'Time Override');
+    const metaParts = [typeLabel];
+    if(ov.label) metaParts.push(escapeHtml(ov.label));
+    if(ov.remark) metaParts.push(escapeHtml(ov.remark));
+    return `<div class="override-item">
+      <div>
+        <div class="override-date">${formatDateDisplay(ds)}</div>
+        <div class="override-meta">${metaParts.join(' · ')}</div>
+      </div>
+      <div class="override-actions">
+        <button class="btn small ghost" data-edit-override="${ds}">Edit</button>
+        <button class="btn small danger" data-del-override="${ds}">Delete</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-hint">No date overrides added</div>';
+
+  const iconPreviewSrc = getCurrentIconDataUrl();
+  const genBg = (appIconData && appIconData.bg) ? appIconData.bg : '#0B5FFF';
+  const genEmoji = (appIconData && appIconData.emoji) ? appIconData.emoji : defaultIconLetter();
+  const genTextColor = (appIconData && appIconData.textColor) ? appIconData.textColor : '#ffffff';
+
+  document.getElementById('tab-settings').innerHTML = `
+    <div class="card" id="standard-times-card">
+      <h3>Standard Times</h3>
+      <label class="setting-row" for="set-arrive"><span class="setting-title">Standard Arrive Office Time</span><input type="time" id="set-arrive" lang="en-GB" value="${settings.arriveTime}"></label>
+      <label class="setting-row" for="set-late"><span class="setting-title">Late Arrival Threshold</span><input type="time" id="set-late" lang="en-GB" value="${settings.lateThreshold}"></label>
+      <label class="setting-row" for="set-leave"><span class="setting-title">Standard Leave Office Time</span><input type="time" id="set-leave" lang="en-GB" value="${settings.leaveTime}"></label>
+      <label class="setting-row" for="set-lunchdur"><span class="setting-title">Standard Lunch Duration (min)</span><input type="number" id="set-lunchdur" value="${settings.lunchDuration}" min="0"></label>
+      <label class="setting-row" for="set-lbstart"><span class="setting-title">Lunch Boundary Start</span><input type="time" id="set-lbstart" lang="en-GB" value="${settings.lunchBoundaryStart}"></label>
+      <label class="setting-row" for="set-lbend"><span class="setting-title">Lunch Boundary End</span><input type="time" id="set-lbend" lang="en-GB" value="${settings.lunchBoundaryEnd}"></label>
+    </div>
+    <div class="card">
+      <h3>Working Weekdays</h3>
+      <div class="weekday-grid">${wdChecks}</div>
+    </div>
+    <div class="card">
+      <h3>Date Overrides</h3>
+      <div class="holiday-add">
+        <input type="date" id="new-override-date">
+        <button class="btn primary small" id="open-override-btn">Add / Edit</button>
+      </div>
+      <div class="override-list">${overrideList}</div>
+    </div>
+    <div class="card">
+      <h3>Data — Full Backup (JSON)</h3>
+      <button class="btn ghost full" id="export-btn">Export Data (JSON)</button>
+      <label class="btn ghost full" for="import-file">Import Data (JSON)</label>
+      <input type="file" id="import-file" accept="application/json" style="display:none;">
+    </div>
+    <div class="card">
+      <h3>Data — Attendance Records &amp; Overrides (Excel / CSV)</h3>
+      <button class="btn ghost full" id="export-csv-btn">Export to Excel (CSV)</button>
+      <label class="btn ghost full" for="import-csv-file">Import from Excel (CSV)</label>
+      <input type="file" id="import-csv-file" accept=".csv,.xls,.xlsx,text/csv" style="display:none;">
+      <div class="empty-hint">File opens directly in Excel. Includes attendance times, day type, label, remark, custom time slots and all Date Override rules for each day. Date accepts YYYY-MM-DD or D/M/YYYY. Custom time slots are stored as Label|Time pairs separated by “;” — avoid using “|” or “;” inside a slot label.</div>
+    </div>
+
+    <div class="card">
+      <h3>Company</h3>
+      <label class="setting-row" for="set-companyname"><span class="setting-title">Company Name</span><input type="text" id="set-companyname" value="${escapeHtml(settings.companyName || '')}" placeholder="Company Name" maxlength="60"></label>
+
+      <h3 style="margin-top:18px;">App Icon (Home Screen)</h3>
+      <div class="appicon-card">
+        <div class="appicon-preview-wrap">
+          <img id="appicon-preview-img" class="appicon-preview" src="${iconPreviewSrc}" alt="App icon preview">
+          <button class="btn small danger" id="appicon-reset-btn">Reset</button>
+        </div>
+        <div class="appicon-controls">
+          <label class="btn ghost full" for="appicon-upload-input">Upload Photo</label>
+          <input type="file" id="appicon-upload-input" accept="image/*" style="display:none;">
+          <div class="appicon-gen-row">
+            <input type="color" id="appicon-bg-color" class="color-input" value="${genBg}" title="Background color">
+            <input type="text" id="appicon-emoji-input" class="emoji-input" maxlength="2" value="${escapeHtml(genEmoji)}" placeholder="⏱ or W">
+            <input type="color" id="appicon-text-color" class="color-input" value="${genTextColor}" title="Emoji/text color">
+          </div>
+          <button class="btn primary full" id="appicon-generate-btn">Generate &amp; Apply Icon</button>
+        </div>
+      </div>
+      <div class="empty-hint">To use this icon: iPhone (Safari) — tap Share → Add to Home Screen. Android (Chrome) — tap ⋮ → Add to Home Screen / Install app. If you already added a shortcut, remove it and re-add after changing the icon.</div>
+    </div>
+
+    <div class="card">
+      <h3>Reset</h3>
+      <button class="btn danger full" id="reset-btn">Reset All Data</button>
+    </div>
+  `;
+
+  document.getElementById('set-companyname').addEventListener('change', e=>{
+    settings.companyName = e.target.value.trim();
+    saveSettings();
+    renderCompanyDisplay();
+    applyAppIcon();
+  });
+  document.getElementById('set-companyname').addEventListener('blur', e=>{
+    settings.companyName = e.target.value.trim();
+    saveSettings();
+    renderCompanyDisplay();
+    applyAppIcon();
+  });
+
+  document.getElementById('appicon-reset-btn').addEventListener('click', ()=>{
+    saveAppIcon(null);
+    renderSettings();
+  });
+  document.getElementById('appicon-upload-input').addEventListener('change', e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = evt=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const dataUrl = resizeImageToIcon(img);
+        saveAppIcon({ dataUrl, source:'upload' });
+        renderSettings();
+      };
+      img.onerror = ()=> alert('Could not load that image.');
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  });
+  document.getElementById('appicon-generate-btn').addEventListener('click', ()=>{
+    const bg = document.getElementById('appicon-bg-color').value;
+    const emoji = document.getElementById('appicon-emoji-input').value.trim() || defaultIconLetter();
+    const textColor = document.getElementById('appicon-text-color').value;
+    const dataUrl = drawGeneratedIcon(bg, emoji, textColor);
+    saveAppIcon({ dataUrl, source:'generated', bg, emoji, textColor });
+    renderSettings();
+  });
+
+  document.getElementById('set-arrive').addEventListener('change', e=>{ settings.arriveTime = e.target.value || settings.arriveTime; saveSettings(); refreshAll(); });
+  document.getElementById('set-late').addEventListener('change', e=>{ settings.lateThreshold = e.target.value || settings.lateThreshold; saveSettings(); refreshAll(); });
+  document.getElementById('set-leave').addEventListener('change', e=>{ settings.leaveTime = e.target.value || settings.leaveTime; saveSettings(); refreshAll(); });
+  document.getElementById('set-lunchdur').addEventListener('change', e=>{ settings.lunchDuration = Number(e.target.value) || 0; saveSettings(); refreshAll(); });
+  document.getElementById('set-lbstart').addEventListener('change', e=>{ settings.lunchBoundaryStart = e.target.value || settings.lunchBoundaryStart; saveSettings(); refreshAll(); });
+  document.getElementById('set-lbend').addEventListener('change', e=>{ settings.lunchBoundaryEnd = e.target.value || settings.lunchBoundaryEnd; saveSettings(); refreshAll(); });
+
+  document.querySelectorAll('.wd-check').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const v = Number(cb.value);
+      if(cb.checked){ if(!settings.workingDays.includes(v)) settings.workingDays.push(v); }
+      else { settings.workingDays = settings.workingDays.filter(d=>d!==v); }
+      saveSettings();
+      refreshAll();
+    });
+  });
+
+  document.getElementById('open-override-btn').addEventListener('click', ()=>{
+    const dateEl = document.getElementById('new-override-date');
+    if(!dateEl.value){ alert('Please pick a date first'); return; }
+    openDayModal(dateEl.value);
+  });
+
+  document.querySelectorAll('[data-edit-override]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openDayModal(btn.dataset.editOverride));
+  });
+  document.querySelectorAll('[data-del-override]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(confirm('Delete this date override? (Attendance times, if any, will be kept.)')){
+        delete overrides[btn.dataset.delOverride];
+        saveOverrides();
+        refreshAll();
+      }
+    });
+  });
+
+  document.getElementById('export-btn').addEventListener('click', exportData);
+  document.getElementById('import-file').addEventListener('change', importData);
+  document.getElementById('export-csv-btn').addEventListener('click', exportCSV);
+  document.getElementById('import-csv-file').addEventListener('change', importCSV);
+  document.getElementById('reset-btn').addEventListener('click', resetData);
+}
+
+/* ================= Day Detail Modal ================= */
+let editingDate = null;
+
+function renderDayModalCustomSlots(ds){
+  const wrap = document.getElementById('dm-customslots-list');
+  const slots = sortedCustomSlots(ds);
+  wrap.innerHTML = slots.length
+    ? slots.map(slot=>`
+        <div class="field-row">
+          <div class="field-label">${escapeHtml(slot.label)}</div>
+          <div class="field-value">${slot.time}</div>
+          <button class="btn small ghost dm-cs-edit-btn" data-id="${slot.id}">Edit</button>
+        </div>`).join('')
+    : `<div class="empty-hint">No custom time slots for this day yet.</div>`;
+
+  wrap.querySelectorAll('.dm-cs-edit-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> openCustomSlotModal(ds, btn.dataset.id));
+  });
+}
+
+function openDayModal(ds){
+  editingDate = ds;
+  const rec = records[ds] || {};
+  const ov = overrides[ds] || {};
+
+  document.getElementById('dm-title').textContent = formatDateDisplay(ds);
+  document.getElementById('dm-arrive').value = rec.arrive || '';
+  document.getElementById('dm-lunchStart').value = rec.lunchStart || '';
+  document.getElementById('dm-lunchEnd').value = rec.lunchEnd || '';
+  document.getElementById('dm-realLeave').value = rec.realLeave || '';
+
+  document.getElementById('dm-daytype').value = ov.dayType || '';
+  document.getElementById('dm-label').value = ov.label || '';
+  document.getElementById('dm-remark').value = ov.remark || '';
+
+  document.getElementById('dm-ov-arrive').value = ov.arriveTime || '';
+  document.getElementById('dm-ov-late').value = ov.lateThreshold || '';
+  document.getElementById('dm-ov-leave').value = ov.leaveTime || '';
+  document.getElementById('dm-ov-lunchdur').value = (ov.lunchDuration != null) ? ov.lunchDuration : '';
+  document.getElementById('dm-ov-lbstart').value = ov.lunchBoundaryStart || '';
+  document.getElementById('dm-ov-lbend').value = ov.lunchBoundaryEnd || '';
+
+  document.getElementById('dm-def-arrive').textContent = 'Default: ' + settings.arriveTime;
+  document.getElementById('dm-def-late').textContent = 'Default: ' + settings.lateThreshold;
+  document.getElementById('dm-def-leave').textContent = 'Default: ' + settings.leaveTime;
+  document.getElementById('dm-def-lunchdur').textContent = 'Default: ' + settings.lunchDuration + ' min';
+  document.getElementById('dm-def-lbstart').textContent = 'Default: ' + settings.lunchBoundaryStart;
+  document.getElementById('dm-def-lbend').textContent = 'Default: ' + settings.lunchBoundaryEnd;
+
+  renderDayModalCustomSlots(ds);
+
+  document.getElementById('dayModal').classList.remove('hidden');
+}
+function closeDayModal(){
+  document.getElementById('dayModal').classList.add('hidden');
+  editingDate = null;
+}
+
+document.getElementById('dm-close').addEventListener('click', closeDayModal);
+
+document.querySelectorAll('.dm-clear-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById(btn.dataset.target).value = '';
+  });
+});
+
+document.getElementById('dm-add-customslot').addEventListener('click', ()=>{
+  if(editingDate) openCustomSlotModal(editingDate, null);
+});
+
+document.getElementById('dm-clear-all').addEventListener('click', ()=>{
+  if(!editingDate) return;
+  if(confirm('Clear all overrides for this day? (Attendance times will be kept.)')){
+    delete overrides[editingDate];
+    saveOverrides();
+    closeDayModal();
+    refreshAll();
+  }
+});
+
+document.getElementById('dm-delete-times').addEventListener('click', ()=>{
+  if(!editingDate) return;
+  if(confirm('Delete attendance times for this day? (This also removes custom time slots.)')){
+    delete records[editingDate];
+    saveRecords();
+    closeDayModal();
+    refreshAll();
+  }
+});
+
+document.getElementById('dm-save').addEventListener('click', ()=>{
+  if(!editingDate) return;
+  const ds = editingDate;
+
+  const recFields = {
+    arrive: document.getElementById('dm-arrive').value,
+    lunchStart: document.getElementById('dm-lunchStart').value,
+    lunchEnd: document.getElementById('dm-lunchEnd').value,
+    realLeave: document.getElementById('dm-realLeave').value
+  };
+  const cleanRec = {};
+  Object.keys(recFields).forEach(k=>{ if(recFields[k]) cleanRec[k] = recFields[k]; });
+  const existingCustom = getCustomSlots(ds);
+  if(existingCustom.length) cleanRec.custom = existingCustom;
+  if(Object.keys(cleanRec).length) records[ds] = cleanRec; else delete records[ds];
+  saveRecords();
+
+  const ov = {};
+  const dayType = document.getElementById('dm-daytype').value;
+  if(dayType) ov.dayType = dayType;
+  const label = document.getElementById('dm-label').value.trim();
+  if(label) ov.label = label;
+  const remark = document.getElementById('dm-remark').value.trim();
+  if(remark) ov.remark = remark;
+
+  const ovArrive = document.getElementById('dm-ov-arrive').value;
+  if(ovArrive) ov.arriveTime = ovArrive;
+  const ovLate = document.getElementById('dm-ov-late').value;
+  if(ovLate) ov.lateThreshold = ovLate;
+  const ovLeave = document.getElementById('dm-ov-leave').value;
+  if(ovLeave) ov.leaveTime = ovLeave;
+  const ovLunchDur = document.getElementById('dm-ov-lunchdur').value;
+  if(ovLunchDur !== '') ov.lunchDuration = Number(ovLunchDur);
+  const ovLbStart = document.getElementById('dm-ov-lbstart').value;
+  if(ovLbStart) ov.lunchBoundaryStart = ovLbStart;
+  const ovLbEnd = document.getElementById('dm-ov-lbend').value;
+  if(ovLbEnd) ov.lunchBoundaryEnd = ovLbEnd;
+
+  if(Object.keys(ov).length) overrides[ds] = ov; else delete overrides[ds];
+  saveOverrides();
+
+  closeDayModal();
+  refreshAll();
+});
+
+/* ================= JSON Export / Import / Reset ================= */
+function exportData(){
+  const data = { settings, records, overrides, appIcon: appIconData };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `workslog-${todayStr()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importData(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = evt=>{
+    try{
+      const data = JSON.parse(evt.target.result);
+      if(data.settings) settings = Object.assign(defaultSettings(), data.settings);
+      if(data.records) records = data.records;
+      if(data.overrides) overrides = data.overrides;
+      if(data.appIcon !== undefined){
+        appIconData = data.appIcon;
+        if(appIconData) localStorage.setItem(K_APPICON, JSON.stringify(appIconData));
+        else localStorage.removeItem(K_APPICON);
+      }
+      saveSettings(); saveRecords(); saveOverrides();
+      renderCompanyDisplay();
+      applyAppIcon();
+      alert('Import successful');
+      refreshAll();
+    }catch(err){
+      alert('Invalid JSON file');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+function resetData(){
+  if(!confirm('This will erase all saved data. Continue?')) return;
+  settings = defaultSettings();
+  records = {};
+  overrides = {};
+  saveSettings(); saveRecords(); saveOverrides();
+  renderCompanyDisplay();
+  refreshAll();
+}
+
+/* ================= Excel / CSV Export / Import ================= */
+const CSV_HEADER = ['Date','Arrive','LunchStart','LunchEnd','RealLeave','DayType','Label','Remark',
+  'OverrideArriveTime','OverrideLateThreshold','OverrideLeaveTime','OverrideLunchDuration','OverrideLunchBoundaryStart','OverrideLunchBoundaryEnd','CustomSlots'];
+
+function serializeCustomSlots(arr){
+  if(!arr || !arr.length) return '';
+  return arr.map(s => `${s.label}|${s.time}`).join(';');
+}
+function parseCustomSlots(str){
+  if(!str) return [];
+  return str.split(';').filter(Boolean).map((pair,i)=>{
+    const [label,time] = pair.split('|');
+    return { id:'c'+Date.now()+i+Math.random().toString(36).slice(2,5), label:(label||'').trim(), time:(time||'').trim() };
+  }).filter(s => s.label && s.time);
+}
+
+function exportCSV(){
+  const dateSet = new Set([...Object.keys(records), ...Object.keys(overrides)]);
+  const sorted = Array.from(dateSet).sort();
+  const lines = [CSV_HEADER.join(',')];
+  sorted.forEach(ds=>{
+    const rec = records[ds] || {};
+    const ov = overrides[ds] || {};
+    const row = [
+      ds, rec.arrive||'', rec.lunchStart||'', rec.lunchEnd||'', rec.realLeave||'',
+      ov.dayType||'', ov.label||'', ov.remark||'',
+      ov.arriveTime||'', ov.lateThreshold||'', ov.leaveTime||'',
+      (ov.lunchDuration != null ? ov.lunchDuration : ''), ov.lunchBoundaryStart||'', ov.lunchBoundaryEnd||'',
+      serializeCustomSlots(rec.custom)
+    ];
+    lines.push(row.map(csvField).join(','));
+  });
+  const csvContent = lines.join('\r\n');
+  const blob = new Blob(['\ufeff'+csvContent], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `workslog-records-${todayStr()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ','){ row.push(field); field=''; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c === '\r'){ /* skip */ }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => !(r.length===1 && r[0]===''));
+}
+function parseFlexibleDate(str){
+  if(!str) return null;
+  str = str.trim();
+  let m;
+  if(m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)){
+    return `${m[1]}-${pad2(+m[2])}-${pad2(+m[3])}`;
+  }
+  if(m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)){
+    return `${m[3]}-${pad2(+m[2])}-${pad2(+m[1])}`;
+  }
+  if(m = str.match(/^(\d{1,2})\/(\d{1,2})$/)){
+    const year = new Date().getFullYear();
+    return `${year}-${pad2(+m[2])}-${pad2(+m[1])}`;
+  }
+  return null;
+}
+function importCSV(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = evt=>{
+    try{
+      const text = evt.target.result;
+      const rows = parseCSV(text);
+      if(!rows.length){ alert('Empty file'); return; }
+      let startIdx = 0;
+      const firstRow = rows[0].map(s=>String(s).trim().toLowerCase());
+      if(firstRow[0] === 'date') startIdx = 1;
+      let count = 0;
+      for(let i=startIdx; i<rows.length; i++){
+        const r = rows[i];
+        if(!r[0]) continue;
+        const ds = parseFlexibleDate(r[0]);
+        if(!ds) continue;
+        const arrive = (r[1]||'').trim();
+        const lunchStart = (r[2]||'').trim();
+        const lunchEnd = (r[3]||'').trim();
+        const realLeave = (r[4]||'').trim();
+        const dayType = (r[5]||'').trim();
+        const label = (r[6]||'').trim();
+        const remark = (r[7]||'').trim();
+        const ovArriveTime = (r[8]||'').trim();
+        const ovLateThreshold = (r[9]||'').trim();
+        const ovLeaveTime = (r[10]||'').trim();
+        const ovLunchDuration = (r[11]||'').trim();
+        const ovLunchBoundaryStart = (r[12]||'').trim();
+        const ovLunchBoundaryEnd = (r[13]||'').trim();
+        const customSlotsStr = (r[14]||'').trim();
+
+        const recObj = {};
+        if(arrive) recObj.arrive = arrive;
+        if(lunchStart) recObj.lunchStart = lunchStart;
+        if(lunchEnd) recObj.lunchEnd = lunchEnd;
+        if(realLeave) recObj.realLeave = realLeave;
+        const customSlots = parseCustomSlots(customSlotsStr);
+        if(customSlots.length) recObj.custom = customSlots;
+        if(Object.keys(recObj).length) records[ds] = recObj; else delete records[ds];
+
+        const existingOv = overrides[ds] || {};
+        const merged = Object.assign({}, existingOv);
+        if(dayType) merged.dayType = dayType; else delete merged.dayType;
+        if(label) merged.label = label; else delete merged.label;
+        if(remark) merged.remark = remark; else delete merged.remark;
+        if(ovArriveTime) merged.arriveTime = ovArriveTime; else delete merged.arriveTime;
+        if(ovLateThreshold) merged.lateThreshold = ovLateThreshold; else delete merged.lateThreshold;
+        if(ovLeaveTime) merged.leaveTime = ovLeaveTime; else delete merged.leaveTime;
+        if(ovLunchDuration !== '') merged.lunchDuration = Number(ovLunchDuration); else delete merged.lunchDuration;
+        if(ovLunchBoundaryStart) merged.lunchBoundaryStart = ovLunchBoundaryStart; else delete merged.lunchBoundaryStart;
+        if(ovLunchBoundaryEnd) merged.lunchBoundaryEnd = ovLunchBoundaryEnd; else delete merged.lunchBoundaryEnd;
+        if(Object.keys(merged).length) overrides[ds] = merged; else delete overrides[ds];
+
+        count++;
+      }
+      saveRecords(); saveOverrides();
+      alert(`Imported ${count} day(s) from Excel/CSV file.`);
+      refreshAll();
+    }catch(err){
+      alert('Failed to parse file. Please make sure it is a valid CSV/Excel export from this app.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+/* ================= Tab Navigation & Swipe ================= */
+const TAB_ORDER = ['today','records','reports','settings'];
+let currentTabIndex = 0;
+const tabsViewport = document.querySelector('.tabs-viewport');
+const tabsTrack = document.getElementById('tabs-track');
+
+function applyTrackTransform(px, animate){
+  tabsTrack.classList.toggle('dragging', !animate);
+  tabsTrack.style.transform = `translate3d(${px}px,0,0)`;
+}
+function goToIndex(index){
+  index = Math.max(0, Math.min(TAB_ORDER.length - 1, index));
+  currentTabIndex = index;
+  const vw = tabsViewport.offsetWidth;
+  applyTrackTransform(-index * vw, true);
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab === TAB_ORDER[index]));
+  updateBackToTopVisibility();
+}
+function switchTab(tab){
+  const idx = TAB_ORDER.indexOf(tab);
+  if(idx >= 0) goToIndex(idx);
+}
+document.querySelectorAll('.navbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=> switchTab(btn.dataset.tab));
+});
+window.addEventListener('resize', ()=> goToIndex(currentTabIndex));
+
+(function(){
+  let startX = 0, startY = 0, deltaX = 0;
+  let dragging = false, decided = false, horizontal = false;
+
+  function vw(){ return tabsViewport.offsetWidth; }
+
+  function handleStart(x, y){
+    if(document.querySelector('.modal-overlay:not(.hidden)')){ dragging = false; return; }
+    startX = x; startY = y; deltaX = 0;
+    dragging = true; decided = false; horizontal = false;
+  }
+  function handleMove(x, y){
+    if(!dragging) return;
+    const dx = x - startX, dy = y - startY;
+    if(!decided){
+      if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      decided = true;
+      horizontal = Math.abs(dx) > Math.abs(dy) * 1.3;
+      if(!horizontal){ dragging = false; return; }
+    }
+    if(!horizontal) return;
+    deltaX = dx;
+    const width = vw();
+    let translate = (-currentTabIndex * width) + deltaX;
+    const atFirst = currentTabIndex === 0 && deltaX > 0;
+    const atLast = currentTabIndex === TAB_ORDER.length - 1 && deltaX < 0;
+    if(atFirst || atLast){
+      translate = (-currentTabIndex * width) + deltaX * 0.35;
+    }
+    applyTrackTransform(translate, false);
+  }
+  function handleEnd(){
+    if(!dragging) return;
+    dragging = false;
+    if(!horizontal) return;
+    const width = vw();
+    const threshold = width * 0.18;
+    let target = currentTabIndex;
+    if(deltaX <= -threshold) target = currentTabIndex + 1;
+    else if(deltaX >= threshold) target = currentTabIndex - 1;
+    goToIndex(target);
+  }
+
+  tabsViewport.addEventListener('touchstart', e=>{
+    if(e.touches.length !== 1) return;
+    handleStart(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:true});
+  tabsViewport.addEventListener('touchmove', e=>{
+    if(e.touches.length !== 1) return;
+    handleMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:true});
+  tabsViewport.addEventListener('touchend', handleEnd, {passive:true});
+  tabsViewport.addEventListener('touchcancel', handleEnd, {passive:true});
+})();
+
+/* ================= Back to Top ================= */
+const backToTopBtn = document.getElementById('back-to-top-btn');
+function getActivePanelEl(){
+  return document.getElementById('tab-' + TAB_ORDER[currentTabIndex]);
+}
+function updateBackToTopVisibility(){
+  const tab = TAB_ORDER[currentTabIndex];
+  if(tab !== 'records' && tab !== 'settings'){
+    backToTopBtn.classList.remove('visible');
+    return;
+  }
+  const panel = getActivePanelEl();
+  if(panel && panel.scrollTop > 220) backToTopBtn.classList.add('visible');
+  else backToTopBtn.classList.remove('visible');
+}
+['tab-records','tab-settings'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('scroll', updateBackToTopVisibility, {passive:true});
+});
+backToTopBtn.addEventListener('click', ()=>{
+  const panel = getActivePanelEl();
+  if(panel) panel.scrollTo({top:0, behavior:'smooth'});
+});
+
+/* ================= Refresh All ================= */
+function refreshAll(){
+  renderCompanyDisplay();
+  applyAppIcon();
+  renderToday();
+  renderRecords();
+  renderReports();
+  renderSettings();
+  updateBackToTopVisibility();
+}
+refreshAll();
+goToIndex(0);
+setInterval(tickToday, 1000);
+</script>
+
+
+</body></html>
