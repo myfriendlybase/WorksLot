@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en-GB"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+<!DOCTYPE html><html lang="en-GB"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self' blob:; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>WorksLog</title>
@@ -19,14 +19,6 @@
   --text:#111114; --text-light:#6E6E73;
   --border:#E7E7EA; --border-strong:#D8D8DC;
   --hairline:1px solid var(--border);
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#0B0C0E; --card-bg:#15161A;
-    --text:#F2F2F3; --text-light:#9A9AA1;
-    --border:#26272C; --border-strong:#33343A;
-    --blue-bg:#15161A;
-  }
 }
 *{box-sizing:border-box;}
 html{height:100%;}
@@ -1796,6 +1788,10 @@ function importData(e){
   reader.onload = evt=>{
     try{
       const data = JSON.parse(evt.target.result);
+      if(!confirm('This will REPLACE ALL current data (settings, records, overrides) with the imported file. This cannot be undone. Continue?')){
+        e.target.value = '';
+        return;
+      }
       if(data.settings) settings = Object.assign(defaultSettings(), data.settings);
       if(data.records) records = data.records;
       if(data.overrides) overrides = data.overrides;
@@ -1909,10 +1905,36 @@ function importCSV(e){
     try{
       const text = evt.target.result;
       const rows = parseCSV(text);
-      if(!rows.length){ alert('Empty file'); return; }
+      if(!rows.length){ alert('Empty file'); e.target.value=''; return; }
       let startIdx = 0;
       const firstRow = rows[0].map(s=>String(s).trim().toLowerCase());
       if(firstRow[0] === 'date') startIdx = 1;
+
+      /* ---- Pre-scan: figure out how many dates are new vs. existing BEFORE writing anything ---- */
+      const incomingDates = [];
+      for(let i=startIdx; i<rows.length; i++){
+        const r = rows[i];
+        if(!r[0]) continue;
+        const ds = parseFlexibleDate(r[0]);
+        if(ds) incomingDates.push(ds);
+      }
+      if(!incomingDates.length){ alert('No valid dates found in file.'); e.target.value=''; return; }
+
+      const existingCount = incomingDates.filter(ds => records[ds] || overrides[ds]).length;
+      const newCount = incomingDates.length - existingCount;
+
+      const confirmMsg =
+        `This file contains ${incomingDates.length} day(s).\n\n` +
+        `• ${newCount} new day(s) will be added\n` +
+        `• ${existingCount} existing day(s) will be OVERWRITTEN\n\n` +
+        `This cannot be undone unless you have a backup. Continue?`;
+
+      if(!confirm(confirmMsg)){
+        e.target.value = '';
+        return;
+      }
+      /* ---- End pre-scan / confirm ---- */
+
       let count = 0;
       for(let i=startIdx; i<rows.length; i++){
         const r = rows[i];
@@ -1968,7 +1990,6 @@ function importCSV(e){
   reader.readAsText(file);
   e.target.value = '';
 }
-
 /* ================= Tab Navigation & Swipe ================= */
 const TAB_ORDER = ['today','records','reports','settings'];
 let currentTabIndex = 0;
